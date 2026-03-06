@@ -1,75 +1,89 @@
-# Nuxt Minimal Starter
+# 📊 ERP Website - Hệ thống Quản lý Doanh nghiệp
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Ứng dụng quản lý kế toán cho doanh nghiệp, xây dựng với NuxtJS 3 và PostgreSQL.
 
-## Setup
+---
 
-Make sure to install dependencies:
+## 🚀 Bắt đầu
+
+### Yêu cầu hệ thống
+
+- **Node.js**: v18 trở lên
+- **npm** hoặc **pnpm**
+- **PostgreSQL**: v14 trở lên
+
+### Cài đặt
+
+1. **Clone project về máy:**
 
 ```bash
-# npm
+git clone <url-repository>
+cd nuxt-app
+```
+
+2. **Cài đặt dependencies:**
+
+```bash
 npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
 ```
 
-## Development Server
+3. **Cấu hình database:**
+   - Tạo file `.env` trong thư mục gốc
+   - Thêm connection string PostgreSQL:
 
-Start the development server on `http://localhost:3000`:
+```env
+DATABASE_URL="postgresql://username:password@localhost:5432/database_name"
+```
+
+4. **Chạy migrations:**
 
 ```bash
-# npm
+npm run db:push
+```
+
+---
+
+## 💻 Sử dụng Project
+
+### Chạy môi trường Development
+
+```bash
 npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
+Mở trình duyệt tại: `http://localhost:3000`
 
-Build the application for production:
+### Build cho Production
 
 ```bash
-# npm
 npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
 npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+### Các lệnh phổ biến
+
+| Lệnh                | Mô tả                   |
+| ------------------- | ----------------------- |
+| `npm run dev`       | Chạy dev server         |
+| `npm run build`     | Build production        |
+| `npm run generate`  | Generate static site    |
+| `npm run db:push`   | Đẩy schema lên database |
+| `npm run db:studio` | Mở Drizzle Studio       |
+
+---
+
+## 📁 Cấu trúc Project
+
+```
+nuxt-app/
+├── app/
+│   ├── components/       # Vue components
+│   ├── composables/      # Composable functions
+│   ├── pages/           # Route pages
+│   └── layouts/         # Layout templates
+├── server/
+│   ├── api/             # API endpoints
+│   ├── db/              # Database schema
+│   └── utils/           # Server utilities
+└── public/              # Static files
+```

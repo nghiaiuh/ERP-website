@@ -394,8 +394,8 @@ const getCategoryLabel = (category: string) =>
 const loadReportData = (data: any) => {
   if (data?.items && Array.isArray(data.items)) {
     expenses.value = data.items.map((item: any) => ({
-      documentNumber: item.description?.split(" - ")[0] || "",
-      date: item.description?.split(" - ")[1] || "",
+      documentNumber: item.documentNumber || "",
+      date: item.documentDate ? item.documentDate.split("T")[0] : "",
       description: item.itemName || item.description || "",
       amount: formatAmountInput(item.amount?.toString() || "0"),
       category: item.category || "other",

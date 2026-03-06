@@ -84,7 +84,7 @@ export default defineEventHandler(async (event) => {
         itemName: entry.moTa || '',
         description: `${entry.soChungTu} - ${entry.ngayGhiNhan}`,
         documentNumber: entry.soChungTu,
-        date: entry.ngayGhiNhan,
+        documentDate: entry.ngayGhiNhan,
         quantity: 1,
         unit: 'lần',
         unitPrice: parseFloat(entry.soTien || '0'),
