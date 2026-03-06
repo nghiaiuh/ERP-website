@@ -8,6 +8,8 @@ CREATE TABLE users (
 );
 select * from don_chi_phi
 select * from so_doanh_thu
+select * from don_doanh_thu
+select * from doanh_nghiep
 truncate table so_chi_phi cascade
 create table doanh_nghiep (
 	id SERIAL PRIMARY KEY,
@@ -320,6 +322,50 @@ CREATE TRIGGER trigger_tinh_tong_hoa_don_mua
 AFTER INSERT OR UPDATE OR DELETE ON hoa_don_mua_chi_tiet
 FOR EACH ROW
 EXECUTE FUNCTION tinh_tong_hoa_don_mua();
+
+-- Function: Tính tổng tiền sổ doanh thu từ các đơn doanh thu
+CREATE OR REPLACE FUNCTION tinh_tong_so_doanh_thu()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE so_doanh_thu
+    SET tong_tien = (
+        SELECT COALESCE(SUM(CAST(so_tien AS NUMERIC(18,2))), 0)
+        FROM don_doanh_thu
+        WHERE revenue_book_id = COALESCE(NEW.revenue_book_id, OLD.revenue_book_id)
+    )
+    WHERE id = COALESCE(NEW.revenue_book_id, OLD.revenue_book_id);
+    
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger
+CREATE TRIGGER trigger_tinh_tong_so_doanh_thu
+AFTER INSERT OR UPDATE OR DELETE ON don_doanh_thu
+FOR EACH ROW
+EXECUTE FUNCTION tinh_tong_so_doanh_thu();
+
+-- Function: Tính tổng tiền sổ chi phí từ các đơn chi phí
+CREATE OR REPLACE FUNCTION tinh_tong_so_chi_phi()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE so_chi_phi
+    SET tong_tien = (
+        SELECT COALESCE(SUM(CAST(so_tien AS NUMERIC(18,2))), 0)
+        FROM don_chi_phi
+        WHERE expense_book_id = COALESCE(NEW.expense_book_id, OLD.expense_book_id)
+    )
+    WHERE id = COALESCE(NEW.expense_book_id, OLD.expense_book_id);
+    
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger: Tự động tính tổng tiền sổ chi phí khi thêm/sửa/xóa đơn chi phí
+CREATE TRIGGER trigger_tinh_tong_so_chi_phi
+AFTER INSERT OR UPDATE OR DELETE ON don_chi_phi
+FOR EACH ROW
+EXECUTE FUNCTION tinh_tong_so_chi_phi();
 
 -- Function: Cập nhật trạng thái công nợ khi có thanh toán
 CREATE OR REPLACE FUNCTION cap_nhat_trang_thai_cong_no()

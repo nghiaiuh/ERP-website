@@ -1,4 +1,7 @@
 <template>
+  <!-- =========================== -->
+  <!-- KHUNG OVERLAY CHÍNH -->
+  <!-- =========================== -->
   <div
     v-if="isVisible"
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
@@ -6,20 +9,26 @@
     aria-modal="true"
     @click.self="closeOverlay"
   >
+    <!-- Container chính của overlay -->
     <div
       class="relative w-full max-w-[864px] rounded-[10px] border border-black/10 bg-white shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1),0px_4px_6px_-4px_rgba(0,0,0,0.1)]"
     >
-      <!-- Header -->
+      <!-- =========================== -->
+      <!-- PHẦN HEADER (TIÊU ĐỀ) -->
+      <!-- =========================== -->
       <div
         class="border-b border-[#e5e7eb] bg-white px-6 pt-6 pb-[25px] rounded-t-[10px]"
       >
         <div class="flex items-start justify-between">
+          <!-- Phần tiêu đề và nhãn trạng thái -->
           <div>
             <div class="flex items-center gap-2 mb-1">
+              <!-- Tiêu đề động (tạo mới hoặc chỉnh sửa) -->
               <h2 class="text-[20px] font-bold text-[#101828] leading-[28px]">
                 {{ props.editData ? "CHỈNH SỬA" : "TẠO MỚI" }} SỔ CHI TIẾT CHI
                 PHÍ HÀNG HOÁ, DỊCH VỤ
               </h2>
+              <!-- Badge chế độ chỉnh sửa -->
               <span
                 v-if="props.editData"
                 class="px-2 py-0.5 rounded-lg text-[12px] bg-orange-100 text-orange-700 border border-orange-200"
@@ -27,10 +36,12 @@
                 Chế độ chỉnh sửa
               </span>
             </div>
+            <!-- Thông tin mẫu số -->
             <p class="text-[14px] text-[#4a5565] leading-[20px]">
               Mẫu số S2c-HKD | Theo Thông tư 152/2025/TT-BTC ngày 31/12/2025
             </p>
           </div>
+          <!-- Nút đóng overlay -->
           <button
             type="button"
             class="flex h-6 w-6 items-center justify-center rounded opacity-70 hover:opacity-100 transition-opacity"
@@ -54,9 +65,13 @@
         </div>
       </div>
 
-      <!-- Content -->
+      <!-- =========================== -->
+      <!-- PHẦN NỘI DUNG CHÍNH -->
+      <!-- =========================== -->
       <div class="px-6 py-[23px] max-h-[calc(100vh-200px)] overflow-y-auto">
-        <!-- Business Information Section -->
+        <!-- ============================================ -->
+        <!-- KHUNG 1: THÔNG TIN DOANH NGHIỆP -->
+        <!-- ============================================ -->
         <div
           class="bg-[rgba(239,246,255,0.5)] border border-[#dbeafe] rounded-[10px] p-6 mb-6"
         >
@@ -67,7 +82,9 @@
             </h3>
           </div>
 
+          <!-- Lưới 2 cột: Tên doanh nghiệp và Mã số thuế -->
           <div class="grid grid-cols-2 gap-4 mb-4">
+            <!-- Cột 1: Tên doanh nghiệp -->
             <div>
               <label class="block text-[14px] text-[#364153] mb-2">
                 Tên doanh nghiệp <span class="text-[#fb2c36]">*</span>
@@ -79,6 +96,7 @@
                 class="w-full h-9 px-3 py-1 border border-transparent bg-white rounded-lg text-[14px] text-[#101828] placeholder:text-[#717182] focus:border-[#155dfc] focus:outline-none"
               />
             </div>
+            <!-- Cột 2: Mã số thuế -->
             <div>
               <label class="block text-[14px] text-[#364153] mb-2">
                 Mã số thuế <span class="text-[#fb2c36]">*</span>
@@ -92,6 +110,7 @@
             </div>
           </div>
 
+          <!-- Trường địa chỉ (full width) -->
           <div class="mb-4">
             <label class="block text-[14px] text-[#364153] mb-2">
               Địa chỉ <span class="text-[#fb2c36]">*</span>
@@ -105,7 +124,9 @@
           </div>
         </div>
 
-        <!-- Declaration Period Section -->
+        <!-- ============================================ -->
+        <!-- KHUNG 2: SỔ KÊ KHAI -->
+        <!-- ============================================ -->
         <div
           class="bg-[#f9fafb] border border-[#e5e7eb] rounded-[10px] p-6 mb-6"
         >
@@ -116,7 +137,9 @@
             </h3>
           </div>
 
+          <!-- Lưới 2 cột: Mẫu số và Ngày tháng -->
           <div class="grid grid-cols-2 gap-4">
+            <!-- Cột 1: Mẫu số -->
             <div>
               <label class="block text-[14px] text-[#364153] mb-2">
                 Mẫu số <span class="text-[#fb2c36]">*</span>
@@ -132,6 +155,7 @@
                 </option>
               </select>
             </div>
+            <!-- Cột 2: Kỳ báo cáo -->
             <div>
               <label class="block text-[14px] text-[#364153] mb-2">
                 Ngày tháng <span class="text-[#fb2c36]">*</span>
@@ -151,7 +175,9 @@
           </div>
         </div>
 
-        <!-- Expense Detail Table Section -->
+        <!-- ============================================ -->
+        <!-- KHUNG 3: BẢNG CHI TIẾT CHI PHÍ -->
+        <!-- ============================================ -->
         <div class="mb-6">
           <div class="flex items-center gap-3 mb-4">
             <div class="w-1 h-5 bg-[#155dfc] rounded-full"></div>
@@ -160,10 +186,11 @@
             </h3>
           </div>
 
+          <!-- Container bảng chi phí -->
           <div
             class="border border-[#e5e7eb] rounded-[10px] overflow-hidden mb-4"
           >
-            <!-- Table Header -->
+            <!-- Header của bảng (các cột tiêu đề) -->
             <div
               class="bg-[#f9fafb] border-b border-[#e5e7eb] px-5 py-4 grid grid-cols-[100px_110px_165px_110px_130px_110px] gap-2"
             >
@@ -199,27 +226,31 @@
               </div>
             </div>
 
-            <!-- Input Row -->
+            <!-- Dòng nhập liệu (để thêm chi phí mới) -->
             <div
               class="bg-[rgba(239,246,255,0.3)] border-b-2 border-t-2 border-[#bedbff] px-5 py-3 grid grid-cols-[100px_110px_165px_110px_130px_110px] gap-2"
             >
+              <!-- Ô nhập số chứng từ -->
               <input
                 v-model="newExpense.documentNumber"
                 type="text"
                 placeholder="VD: HD001"
                 class="h-9 px-3 py-1 border border-transparent bg-white rounded-lg text-[14px] text-[#101828] placeholder:text-[#717182] focus:border-[#155dfc] focus:outline-none"
               />
+              <!-- Ô chọn ngày -->
               <input
                 v-model="newExpense.date"
                 type="date"
                 class="h-9 px-3 py-1 border border-transparent bg-white rounded-lg text-[14px] text-[#101828] placeholder:text-[#717182] focus:border-[#155dfc] focus:outline-none text-center"
               />
+              <!-- Ô nhập diễn giải -->
               <input
                 v-model="newExpense.description"
                 type="text"
                 placeholder="Mô tả chi phí"
                 class="h-9 px-3 py-2.5 border border-transparent bg-white rounded-lg text-[14px] text-[#101828] placeholder:text-[#717182] focus:border-[#155dfc] focus:outline-none"
               />
+              <!-- Ô nhập số tiền -->
               <input
                 v-model="newExpense.amount"
                 @input="onAmountInput"
@@ -227,6 +258,7 @@
                 placeholder="20.000.000đ"
                 class="h-9 px-3 py-1 border border-transparent bg-white rounded-lg text-[14px] text-[#101828] placeholder:text-[#717182] focus:border-[#155dfc] focus:outline-none text-right"
               />
+              <!-- Dropdown phân loại chi phí -->
               <div class="relative">
                 <select
                   v-model="newExpense.category"
@@ -255,6 +287,7 @@
                   />
                 </svg>
               </div>
+              <!-- Nút Thêm chi phí -->
               <button
                 type="button"
                 @click="addExpense"
@@ -269,7 +302,7 @@
               </button>
             </div>
 
-            <!-- Empty State or Expense List -->
+            <!-- Trạng thái rỗng (khi chưa có chi phí nào) -->
             <div v-if="expenses.length === 0" class="px-[211px] py-10">
               <p class="text-center text-[14px] text-[#6a7282] leading-[20px]">
                 Chưa có chi phí nào. Vui lòng thêm chi phí bằng các ô trống phía
@@ -277,7 +310,7 @@
               </p>
             </div>
 
-            <!-- Expense List -->
+            <!-- Danh sách chi phí (đã thêm) -->
             <div v-else class="bg-white">
               <div
                 v-for="(expense, index) in expenses"
@@ -310,7 +343,7 @@
             </div>
           </div>
 
-          <!-- Expense Categories Information -->
+          <!-- Khung hướng dẫn phân loại chi phí -->
           <div class="bg-[#f9fafb] border border-[#e5e7eb] rounded-[10px] p-4">
             <h4
               class="text-[14px] font-bold text-[#101828] mb-3 leading-[20px]"
@@ -359,8 +392,11 @@
         </div>
       </div>
 
-      <!-- Footer -->
+      <!-- =========================== -->
+      <!-- PHẦN FOOTER (NÚT BẤM) -->
+      <!-- =========================== -->
       <div class="border-t border-[#e5e7eb] px-6 py-3 flex justify-center">
+        <!-- Nút Nộp báo cáo / Cập nhật báo cáo -->
         <button
           type="button"
           @click="submitReport"
@@ -374,38 +410,58 @@
 </template>
 
 <script setup lang="ts">
+// ====================================
+// INTERFACES & TYPES
+// ====================================
+
+/** Interface cho một mục chi phí */
 interface ExpenseItem {
-  documentNumber: string;
-  date: string;
-  description: string;
-  amount: string;
-  category: string;
+  documentNumber: string; // Số chứng từ
+  date: string; // Ngày tháng
+  description: string; // Diễn giải
+  amount: string; // Số tiền
+  category: string; // Phân loại chi phí
 }
 
+/** Interface cho dữ liệu form */
 interface FormData {
-  businessName: string;
-  taxCode: string;
-  address: string;
-  businessSector: string;
-  templateCode: string;
-  periodRange: string;
+  businessName: string; // Tên doanh nghiệp
+  taxCode: string; // Mã số thuế
+  address: string; // Địa chỉ
+  businessSector: string; // Ngành nghề kinh doanh
+  templateCode: string; // Mẫu số
+  periodRange: string; // Kỳ báo cáo (fromDate|toDate)
 }
 
+// ====================================
+// PROPS & EMITS
+// ====================================
+
+/** Props nhận từ component cha */
 const props = defineProps<{
-  isVisible: boolean;
-  editData?: any;
+  isVisible: boolean; // Hiển thị overlay hay không
+  editData?: any; // Dữ liệu báo cáo để chỉnh sửa (nếu có)
 }>();
 
+/** Events emit về component cha */
 const emit = defineEmits<{
-  (e: "close"): void;
-  (e: "submit", data: any): void;
+  (e: "close"): void; // Đóng overlay
+  (e: "submit", data: any): void; // Nộp báo cáo (tạo mới hoặc cập nhật)
 }>();
 
-// Constants
+// ====================================
+// CONSTANTS (HẰNG SỐ)
+// ====================================
+
+/** Key để lưu trữ dữ liệu form trong localStorage */
 const STORAGE_KEY = "expenseReportLastOptions";
 
+/**
+ * Lấy dữ liệu form mặc định từ localStorage hoặc giá trị cố định
+ * @returns Dữ liệu form mặc định
+ */
 const getDefaultFormData = (): FormData => {
-  // Load từ localStorage nếu có
+  // Tải từ localStorage nếu có
   if (process.client) {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
@@ -439,6 +495,7 @@ const getDefaultFormData = (): FormData => {
   };
 };
 
+/** Template cho một mục chi phí rỗng */
 const EMPTY_EXPENSE_ITEM: ExpenseItem = {
   documentNumber: "",
   date: "",
@@ -447,6 +504,7 @@ const EMPTY_EXPENSE_ITEM: ExpenseItem = {
   category: "",
 };
 
+/** Danh sách nhãn phân loại chi phí */
 const CATEGORY_LABELS: Record<string, string> = {
   materials: "Nguyên vật liệu, nhiên liệu",
   salary: "Lương, phụ cấp, bảo hiểm",
@@ -456,16 +514,28 @@ const CATEGORY_LABELS: Record<string, string> = {
   other: "Chi phí khác",
 };
 
-// Form data
+// ====================================
+// REACTIVE DATA (DỮ LIỆU PHẢN ỨNG)
+// ====================================
+
+/** Dữ liệu form (thông tin doanh nghiệp, kỳ báo cáo) */
 const formData = ref<FormData>(getDefaultFormData());
 
-// New expense input
+/** Dữ liệu chi phí mới đang nhập */
 const newExpense = ref<ExpenseItem>({ ...EMPTY_EXPENSE_ITEM });
 
-// List of added expenses
+/** Danh sách các chi phí đã thêm */
 const expenses = ref<ExpenseItem[]>([]);
 
-// Helper Functions
+// ====================================
+// HELPER FUNCTIONS (HÀM HỖ TRỢ)
+// ====================================
+
+/**
+ * Format số tiền thành định dạng Việt Nam (có đơn vị đ)
+ * @param value - Giá trị số cần format
+ * @returns Chuỗi đã được format
+ */
 const formatAmountInput = (value: string) => {
   const numericValue = value.replace(/[^0-9]/g, "");
   return numericValue
@@ -473,9 +543,19 @@ const formatAmountInput = (value: string) => {
     : "";
 };
 
+/**
+ * Chuyển chuỗi số tiền đã format thành số
+ * @param amountString - Chuỗi số tiền (có dấu phân cách và đơn vị)
+ * @returns Giá trị số
+ */
 const parseAmount = (amountString: string) =>
   parseFloat(amountString.replace(/[.,đ\s]/g, "")) || 0;
 
+/**
+ * Format ngày tháng từ yyyy-mm-dd sang dd-mm-yyyy
+ * @param dateString - Chuỗi ngày tháng dạng yyyy-mm-dd
+ * @returns Chuỗi ngày tháng dạng dd-mm-yyyy
+ */
 const formatDate = (dateString: string) => {
   if (!dateString) return "";
   const parts = dateString.split("-");
@@ -484,9 +564,18 @@ const formatDate = (dateString: string) => {
     : dateString;
 };
 
+/**
+ * Lấy nhãn phân loại chi phí từ mã phân loại
+ * @param category - Mã phân loại
+ * @returns Nhãn phân loại tiếng Việt
+ */
 const getCategoryLabel = (category: string) =>
   CATEGORY_LABELS[category] || category;
 
+/**
+ * Lưu dữ liệu form vào localStorage
+ * @param data - Dữ liệu form cần lưu
+ */
 const saveToLocalStorage = (data: FormData) => {
   if (process.client) {
     try {
@@ -497,11 +586,19 @@ const saveToLocalStorage = (data: FormData) => {
   }
 };
 
+/**
+ * Reset form về trạng thái mặc định
+ */
 const resetForm = () => {
   formData.value = getDefaultFormData();
   expenses.value = [];
 };
 
+/**
+ * Tạo đối tượng mục báo cáo từ dữ liệu chi phí
+ * @param exp - Dữ liệu chi phí
+ * @returns Đối tượng mục báo cáo
+ */
 const createReportItem = (exp: ExpenseItem) => {
   const amount = parseAmount(exp.amount);
   return {
@@ -518,9 +615,16 @@ const createReportItem = (exp: ExpenseItem) => {
   };
 };
 
-// Methods
+// ====================================
+// METHODS (PHƯƠNG THỨC)
+// ====================================
+
+/** Đóng overlay */
 const closeOverlay = () => emit("close");
 
+/**
+ * Thêm chi phí mới vào danh sách
+ */
 const addExpense = () => {
   const { documentNumber, date, description, amount } = newExpense.value;
   if (documentNumber && date && description && amount) {
@@ -529,34 +633,49 @@ const addExpense = () => {
   }
 };
 
+/**
+ * Xử lý sự kiện nhập số tiền (format tự động)
+ * @param event - Sự kiện input
+ */
 const onAmountInput = (event: Event) => {
   const rawValue = (event.target as HTMLInputElement).value;
   const numericValue = rawValue.replace(/[^0-9]/g, "");
   newExpense.value.amount = numericValue ? formatAmountInput(rawValue) : "";
 };
 
+/**
+ * Xóa chi phí khỏi danh sách
+ * @param index - Chỉ số của chi phí cần xóa
+ */
 const removeExpense = (index: number) => expenses.value.splice(index, 1);
 
+/**
+ * Xử lý nộp báo cáo (tạo mới hoặc cập nhật)
+ */
 const submitReport = () => {
   const { businessName, taxCode, address, templateCode, periodRange } =
     formData.value;
 
+  // Validate các trường bắt buộc
   if (!businessName || !taxCode || !address || !templateCode || !periodRange) {
     alert("Vui lòng điền đầy đủ các trường bắt buộc (*)");
     return;
   }
 
+  // Validate danh sách chi phí
   if (expenses.value.length === 0) {
     alert("Vui lòng thêm ít nhất một chi phí");
     return;
   }
 
+  // Tách kỳ báo cáo
   const [fromDate, toDate] = periodRange.split("|");
   if (!fromDate || !toDate) {
     alert("Vui lòng chọn kỳ báo cáo hợp lệ");
     return;
   }
 
+  // Tạo danh sách items và tính tổng chi phí
   const items = expenses.value.map(createReportItem);
   const totalExpense = items.reduce((sum, item) => sum + item.amount, 0);
   const title = `Báo cáo chi phí ${new Date(fromDate).toLocaleDateString("vi-VN")} - ${new Date(toDate).toLocaleDateString("vi-VN")}`;
@@ -566,6 +685,7 @@ const submitReport = () => {
     saveToLocalStorage(formData.value);
   }
 
+  // Tạo đối tượng báo cáo
   const reportData: any = {
     title,
     periodStart: fromDate,
@@ -596,7 +716,14 @@ const submitReport = () => {
   resetForm();
 };
 
-// Watch for visibility changes to reset form or load edit data
+// ====================================
+// WATCHERS (THEO DÕI SỰ THAY ĐỔI)
+// ====================================
+
+/**
+ * Theo dõi sự thay đổi của isVisible để load dữ liệu
+ * hoặc reset form khi mở/đóng overlay
+ */
 watch(
   () => props.isVisible,
   (newValue) => {
@@ -616,7 +743,9 @@ watch(
   },
 );
 
-// Load data từ editData khi chỉnh sửa
+/**
+ * Load dữ liệu từ editData vào form (khi chỉnh sửa báo cáo)
+ */
 const loadEditData = () => {
   if (!props.editData) return;
 
@@ -646,26 +775,37 @@ const loadEditData = () => {
 </script>
 
 <style scoped>
-/* Custom scrollbar */
+/* ====================================
+   CUSTOM SCROLLBAR (THANH CUỘN TÙY CHỈNH)
+   ==================================== */
+
+/* Chiều rộng thanh cuộn */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
+/* Track (đường ray) của thanh cuộn */
 ::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 4px;
 }
 
+/* Thumb (thanh kéo) của thanh cuộn */
 ::-webkit-scrollbar-thumb {
   background: #888;
   border-radius: 4px;
 }
 
+/* Thumb khi hover (di chuột qua) */
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
 
-/* Date input styling */
+/* ====================================
+   DATE INPUT STYLING (ĐỊNH DẠNG Ô NHẬP NGÀY)
+   ==================================== */
+
+/* Icon lịch trong ô nhập ngày */
 input[type="date"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
   opacity: 1;
