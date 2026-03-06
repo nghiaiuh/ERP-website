@@ -1,5 +1,5 @@
 import { eq, or } from 'drizzle-orm'
-import { useDrizzle, users } from '~~/server/utils/drizzle'
+import { useDrizzle, users } from '../../utils/drizzle'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 
@@ -18,6 +18,8 @@ export default defineEventHandler(async (event) => {
       })
     }
     
+    console.log('Login attempt:', identifier)
+    
     const userResult = await db
       .select()
       .from(users)
@@ -28,6 +30,8 @@ export default defineEventHandler(async (event) => {
         )
       )
       .limit(1)
+    
+    console.log('User found:', userResult.length > 0)
     
     if (userResult.length === 0) {
       throw createError({

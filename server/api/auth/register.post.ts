@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm'
-import { useDrizzle, users } from '~~/server/utils/drizzle'
+import { useDrizzle, users } from '../../utils/drizzle'
 import bcrypt from 'bcryptjs'
 
 export default defineEventHandler(async (event) => {

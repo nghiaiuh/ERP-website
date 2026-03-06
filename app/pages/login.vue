@@ -143,7 +143,7 @@ async function submitForm() {
   }
 
   loading.value = true;
-
+  // API call
   try {
     const result = await $fetch("/api/auth/login", {
       method: "POST",

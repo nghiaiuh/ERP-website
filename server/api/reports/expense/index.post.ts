@@ -1,0 +1,79 @@
+import { db } from '../../../utils/drizzle'
+import { soChiPhi, donChiPhi } from '../../../db/schema'
+import { eq, and } from 'drizzle-orm'
+
+export default defineEventHandler(async (event) => {
+  try {
+    const body = await readBody(event)
+    const { periodStart, periodEnd, items, metadata, totalExpense } = body
+
+    // Step 1: Find or create expense book (so_chi_phi) for this period
+    let expenseBook = await db.select()
+      .from(soChiPhi)
+      .where(
+        and(
+          eq(soChiPhi.ngayBatDau, periodStart),
+          eq(soChiPhi.ngayKetThuc, periodEnd)
+        )
+      )
+      .limit(1)
+
+    let expenseBookId: number
+
+    if (expenseBook.length === 0) {
+      // Create new expense book (without doanhNghiepId to avoid FK constraint)
+      const newBooks = await db.insert(soChiPhi)
+        .values({
+          mauSo: metadata?.documentType || 'S2c-HKD',
+          ngayBatDau: periodStart,
+          ngayKetThuc: periodEnd,
+          tongTien: totalExpense?.toString() || '0',
+        })
+        .returning()
+      
+      if (!newBooks || newBooks.length === 0) {
+        throw new Error('Failed to create expense book')
+      }
+      expenseBookId = newBooks[0]!.id
+    } else {
+      expenseBookId = expenseBook[0]!.id
+    }
+
+    // Step 2: Insert expense entries (don_chi_phi)
+    const insertedEntries = []
+    
+    if (items && items.length > 0) {
+      for (const item of items) {
+        const [entry] = await db.insert(donChiPhi)
+          .values({
+            expenseBookId: expenseBookId,
+            soChungTu: item.documentNumber || `DOC-${Date.now()}`,
+            ngayGhiNhan: item.documentDate || periodStart,
+            moTa: item.itemName || item.description,
+            phanLoai: item.category || 'other',
+            soTien: (item.amount || item.totalAmount || 0).toString(),
+          })
+          .returning()
+        
+        insertedEntries.push(entry)
+      }
+    }
+
+    return {
+      success: true,
+      message: 'Expense report created successfully',
+      data: {
+        expenseBookId,
+        entriesCount: insertedEntries.length,
+        entries: insertedEntries
+      }
+    }
+  } catch (error: any) {
+    console.error('Error creating expense report:', error)
+    return {
+      success: false,
+      message: 'Failed to create expense report',
+      error: error.message
+    }
+  }
+})

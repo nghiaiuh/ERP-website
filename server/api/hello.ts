@@ -1,12 +1,9 @@
-import { teams, users } from "../db/schema";
+import { users } from "../db/schema";
 import { useDrizzle } from "../utils/drizzle";
 
 export default defineEventHandler(async (event) => {
     try {
         const db = useDrizzle()
-        
-        // Get all teams
-        const allTeams = await db.select().from(teams)
         
         // Get all users
         const allUsers = await db
@@ -20,9 +17,10 @@ export default defineEventHandler(async (event) => {
             .from(users)
             .orderBy(users.createdAt)
         
+        
         return { 
-            users: allUsers, 
-            teams: allTeams
+            message: 'ERP Database connected successfully',
+            users: allUsers
         }
     } catch (err) {
         // Let Nuxt handle the error response; include message for debugging

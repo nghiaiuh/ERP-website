@@ -22,8 +22,10 @@
           class="bg-black text-white rounded-[14px] p-6 border border-[rgba(0,0,0,0.1)]"
         >
           <p class="text-[#ebeef0] text-[14px] mb-1">Tổng hóa đơn</p>
-          <p class="text-[24px] font-bold mb-1">156</p>
-          <p class="text-[#d8d8d8] text-[12px]">+12 tháng này</p>
+          <p class="text-[24px] font-bold mb-1">{{ totalInvoices }}</p>
+          <p class="text-[#d8d8d8] text-[12px]">
+            +{{ processingInvoices }} đang xử lý
+          </p>
         </div>
 
         <!-- Card 2: Đã xử lý -->
@@ -36,8 +38,12 @@
             <img src="/icon/check.svg" alt="check" class="w-5 h-5" />
           </div>
           <p class="text-[#4a5565] text-[14px] mb-1">Đã xử lý</p>
-          <p class="text-[#101828] text-[24px] font-bold mb-1">142</p>
-          <p class="text-[#6a7282] text-[12px]">91% hoàn thành</p>
+          <p class="text-[#101828] text-[24px] font-bold mb-1">
+            {{ processedInvoices }}
+          </p>
+          <p class="text-[#6a7282] text-[12px]">
+            {{ processedPercentage }}% hoàn thành
+          </p>
         </div>
 
         <!-- Card 3: Đang xử lý -->
@@ -50,7 +56,9 @@
             <img src="/icon/clock.svg" alt="clock" class="w-5 h-5" />
           </div>
           <p class="text-[#4a5565] text-[14px] mb-1">Đang xử lý</p>
-          <p class="text-[#101828] text-[24px] font-bold mb-1">14</p>
+          <p class="text-[#101828] text-[24px] font-bold mb-1">
+            {{ processingInvoices }}
+          </p>
           <p class="text-[#6a7282] text-[12px]">OCR tự động</p>
         </div>
 
@@ -64,7 +72,9 @@
             <img src="/icon/chart-blue.svg" alt="chart" class="w-5 h-5" />
           </div>
           <p class="text-[#4a5565] text-[14px] mb-1">Tổng giá trị</p>
-          <p class="text-[#101828] text-[24px] font-bold mb-1">₫2.8B</p>
+          <p class="text-[#101828] text-[24px] font-bold mb-1">
+            ₫{{ totalValue }}B
+          </p>
           <p class="text-[#6a7282] text-[12px]">Đã trích xuất</p>
         </div>
       </div>
@@ -104,7 +114,18 @@
           </p>
         </div>
 
-        <div class="space-y-4">
+        <!-- Loading State -->
+        <div v-if="pending" class="text-center py-8">
+          <p class="text-[#4a5565]">Đang tải dữ liệu...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div v-else-if="recentInvoices.length === 0" class="text-center py-8">
+          <p class="text-[#4a5565]">Chưa có hóa đơn nào</p>
+        </div>
+
+        <!-- Invoices List -->
+        <div v-else class="space-y-4">
           <div
             v-for="invoice in recentInvoices"
             :key="invoice.id"
@@ -306,6 +327,9 @@ definePageMeta({
   ],
 });
 
+// Use ERP composable
+const { getInvoices, formatNumber } = useERP();
+
 // Tabs configuration using composable
 const tabs = useAccountingTabs();
 
@@ -313,39 +337,59 @@ const tabs = useAccountingTabs();
 const showUpload = ref(false);
 const showInvoiceDetails = ref(false);
 
-// Recent invoices data
-const recentInvoices = ref([
-  {
-    id: 1,
-    number: "HD001-2025",
-    supplier: "Công ty TNHH ABC",
-    date: "15/01/2025",
-    amount: 15000000,
-    type: "Giấy",
-    status: "processed",
-    statusText: "Đã xử lý",
-  },
-  {
-    id: 2,
-    number: "HD002-2025",
-    supplier: "Công ty CP XYZ",
-    date: "18/01/2025",
-    amount: 28000000,
-    type: "Điện tử",
-    status: "processed",
-    statusText: "Đã xử lý",
-  },
-  {
-    id: 3,
-    number: "HD003-2025",
-    supplier: "Công ty TNHH DEF",
-    date: "20/01/2025",
-    amount: 8500000,
-    type: "Giấy",
-    status: "processing",
-    statusText: "Đang xử lý",
-  },
-]);
+// Fetch invoices from API
+const {
+  data: invoicesData,
+  pending,
+  refresh,
+} = await getInvoices({ limit: 10 });
+
+// Compute statistics from real data
+const totalInvoices = computed(() => invoicesData.value?.data?.length || 0);
+const processedInvoices = computed(
+  () =>
+    invoicesData.value?.data?.filter((inv: any) => inv.status === "processed")
+      .length || 0,
+);
+const processingInvoices = computed(
+  () =>
+    invoicesData.value?.data?.filter((inv: any) => inv.status === "processing")
+      .length || 0,
+);
+const totalValue = computed(() => {
+  const total =
+    invoicesData.value?.data?.reduce(
+      (sum: number, inv: any) => sum + (inv.totalAmount || 0),
+      0,
+    ) || 0;
+  return (total / 1000000000).toFixed(1); // Convert to billions
+});
+const processedPercentage = computed(() =>
+  totalInvoices.value > 0
+    ? Math.round((processedInvoices.value / totalInvoices.value) * 100)
+    : 0,
+);
+
+// Transform API data to display format
+const recentInvoices = computed(() => {
+  if (!invoicesData.value?.data) return [];
+
+  return invoicesData.value.data.map((inv: any) => ({
+    id: inv.id,
+    number: inv.invoiceNumber,
+    supplier: inv.supplier?.name || "Không có thông tin",
+    date: new Date(inv.issueDate).toLocaleDateString("vi-VN"),
+    amount: inv.totalAmount,
+    type: inv.invoiceType === "electronic" ? "Điện tử" : "Giấy",
+    status: inv.status,
+    statusText:
+      inv.status === "processed"
+        ? "Đã xử lý"
+        : inv.status === "processing"
+          ? "Đang xử lý"
+          : "Từ chối",
+  }));
+});
 
 // Methods
 const openInvoiceDetails = (invoice: any) => {
@@ -358,14 +402,12 @@ const captureInvoice = () => {
   // TODO: Implement camera capture functionality
 };
 
-const handleUpload = () => {
+const handleUpload = async () => {
   console.log("Handle file upload");
   // TODO: Implement file upload functionality
   showUpload.value = false;
-};
-
-const formatNumber = (num: number) => {
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  // Refresh the invoices list after upload
+  await refresh();
 };
 </script>
 

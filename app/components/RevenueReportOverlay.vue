@@ -15,10 +15,19 @@
       >
         <div class="flex items-start justify-between">
           <div>
-            <h2 class="text-[20px] font-bold text-[#101828] leading-[28px]">
-              SỔ CHI TIẾT DOANH THU BÁN HÀNG HOÁ, DỊCH VỤ
-            </h2>
-            <p class="mt-2 text-[14px] text-[#4a5565] leading-[20px]">
+            <div class="flex items-center gap-2 mb-1">
+              <h2 class="text-[20px] font-bold text-[#101828] leading-[28px]">
+                {{ props.editData ? "CHỈNH SỬA" : "TẠO MỚI" }} SỔ CHI TIẾT DOANH
+                THU BÁN HÀNG HOÁ, DỊCH VỤ
+              </h2>
+              <span
+                v-if="props.editData"
+                class="px-2 py-0.5 rounded-lg text-[12px] bg-orange-100 text-orange-700 border border-orange-200"
+              >
+                Chế độ chỉnh sửa
+              </span>
+            </div>
+            <p class="text-[14px] text-[#4a5565] leading-[20px]">
               Mẫu số S1a-HKD | Theo Thông tư 152/2025/TT-BTC ngày 31/12/2025
             </p>
           </div>
@@ -81,18 +90,6 @@
               class="w-full h-9 px-3 py-1 border border-transparent bg-white rounded-lg text-[14px] text-[#101828] placeholder:text-[#717182] focus:border-[#155dfc] focus:outline-none"
             />
           </div>
-
-          <div>
-            <label class="block text-[14px] text-[#364153] mb-2">
-              Ngành nghề kinh doanh
-            </label>
-            <input
-              v-model="formData.businessSector"
-              type="text"
-              placeholder="Nhập ngành nghề kinh doanh"
-              class="w-full h-9 px-3 py-1 border border-transparent bg-white rounded-lg text-[14px] text-[#101828] placeholder:text-[#717182] focus:border-[#155dfc] focus:outline-none"
-            />
-          </div>
         </div>
 
         <!-- Declaration Period Section -->
@@ -102,55 +99,47 @@
           <div class="flex items-center gap-3 mb-4">
             <div class="w-1 h-5 bg-[#155dfc] rounded-full"></div>
             <h3 class="text-[16px] font-bold text-[#101828] leading-[24px]">
-              Kỳ kê khai
+              Sổ kê khai
             </h3>
           </div>
 
-          <div class="grid grid-cols-3 gap-4">
+          <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-[14px] text-[#364153] mb-2">
-                Từ ngày <span class="text-[#fb2c36]">*</span>
+                Mẫu số <span class="text-[#fb2c36]">*</span>
               </label>
-              <div class="relative">
-                <input
-                  v-model="formData.fromDate"
-                  type="date"
-                  class="w-full h-9 px-3 py-1 border border-transparent bg-white rounded-lg text-[14px] text-[#101828] focus:border-[#155dfc] focus:outline-none"
-                />
-                <img
-                  src="/icon/calendar.svg"
-                  alt="calendar"
-                  class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                />
-              </div>
+              <select
+                v-model="formData.templateCode"
+                class="w-full h-9 px-3 py-1 border border-transparent bg-white rounded-lg text-[14px] text-[#101828] focus:border-[#155dfc] focus:outline-none appearance-none cursor-pointer"
+              >
+                <option
+                  value="S1a-HKD | Theo Thông tư 152/2025/TT-BTC ngày 31/12/2025"
+                >
+                  Mẫu số S1a-HKD | Theo Thông tư 152/2025/TT-BTC ngày 31/12/2025
+                </option>
+              </select>
             </div>
             <div>
               <label class="block text-[14px] text-[#364153] mb-2">
-                Đến ngày <span class="text-[#fb2c36]">*</span>
+                Ngày tháng <span class="text-[#fb2c36]">*</span>
               </label>
-              <div class="relative">
-                <input
-                  v-model="formData.toDate"
-                  type="date"
-                  class="w-full h-9 px-3 py-1 border border-transparent bg-white rounded-lg text-[14px] text-[#101828] focus:border-[#155dfc] focus:outline-none"
-                />
-                <img
-                  src="/icon/calendar.svg"
-                  alt="calendar"
-                  class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                />
-              </div>
-            </div>
-            <div>
-              <label class="block text-[14px] text-[#364153] mb-2">
-                Địa điểm
-              </label>
-              <input
-                v-model="formData.location"
-                type="text"
-                placeholder="Nhập địa điểm"
-                class="w-full h-9 px-3 py-1 border border-transparent bg-white rounded-lg text-[14px] text-[#101828] placeholder:text-[#717182] focus:border-[#155dfc] focus:outline-none"
-              />
+              <select
+                v-model="formData.periodRange"
+                class="w-full h-9 px-3 py-1 border border-transparent bg-white rounded-lg text-[14px] text-[#101828] focus:border-[#155dfc] focus:outline-none appearance-none cursor-pointer"
+              >
+                <option value="2024-01-01|2025-01-01">
+                  1/1/2024 - 1/1/2025
+                </option>
+                <option value="2025-01-01|2026-01-01">
+                  1/1/2025 - 1/1/2026
+                </option>
+                <option value="2026-01-01|2027-01-01">
+                  1/1/2026 - 1/1/2027
+                </option>
+                <option value="2027-01-01|2028-01-01">
+                  1/1/2027 - 1/1/2028
+                </option>
+              </select>
             </div>
           </div>
         </div>
@@ -167,7 +156,7 @@
           <div class="border border-[#e5e7eb] rounded-[10px] overflow-hidden">
             <!-- Table Header -->
             <div
-              class="bg-[#f9fafb] border-b border-[#e5e7eb] px-5 py-4 grid grid-cols-[100px_90px_1fr_110px_130px_110px] gap-2"
+              class="bg-[#f9fafb] border-b border-[#e5e7eb] px-5 py-4 grid grid-cols-[100px_110px_165px_110px_130px_110px] gap-2"
             >
               <div
                 class="text-[12px] font-bold text-[#364153] uppercase tracking-wider text-center"
@@ -203,7 +192,7 @@
 
             <!-- Input Row -->
             <div
-              class="bg-[rgba(239,246,255,0.3)] border-b-2 border-t-2 border-[#bedbff] px-5 py-3 grid grid-cols-[100px_90px_1fr_110px_130px_110px] gap-2"
+              class="bg-[rgba(239,246,255,0.3)] border-b-2 border-t-2 border-[#bedbff] px-5 py-3 grid grid-cols-[100px_110px_165px_110px_130px_110px] gap-2"
             >
               <input
                 v-model="newRevenue.documentNumber"
@@ -213,9 +202,8 @@
               />
               <input
                 v-model="newRevenue.date"
-                type="text"
-                placeholder="7/2/2026"
-                class="h-9 px-3 py-1 border border-transparent bg-white rounded-lg text-[14px] text-[#101828] placeholder:text-[#717182] focus:border-[#155dfc] focus:outline-none text-center"
+                type="date"
+                class="h-9 px-1 py-1 border border-transparent bg-white rounded-lg text-[14px] text-[#101828] placeholder:text-[#717182] focus:border-[#155dfc] focus:outline-none text-center"
               />
               <input
                 v-model="newRevenue.description"
@@ -225,6 +213,7 @@
               />
               <input
                 v-model="newRevenue.amount"
+                @input="onAmountInput"
                 type="text"
                 placeholder="20.000.000đ"
                 class="h-9 px-3 py-1 border border-transparent bg-white rounded-lg text-[14px] text-[#101828] placeholder:text-[#717182] focus:border-[#155dfc] focus:outline-none text-right"
@@ -268,7 +257,6 @@
               </button>
             </div>
 
-            <!-- Empty State or Revenue List -->
             <div v-if="revenues.length === 0" class="px-[211px] py-10">
               <p class="text-center text-[14px] text-[#6a7282] leading-[20px]">
                 Chưa có doanh thu nào. Vui lòng thêm doanh thu bằng các ô trống
@@ -281,13 +269,13 @@
               <div
                 v-for="(revenue, index) in revenues"
                 :key="index"
-                class="border-b border-[#e5e7eb] px-5 py-3 grid grid-cols-[100px_90px_1fr_110px_130px_110px] gap-2 items-center hover:bg-gray-50"
+                class="border-b border-[#e5e7eb] px-5 py-3 grid grid-cols-[100px_110px_165px_110px_130px_110px] gap-2 items-center hover:bg-gray-50"
               >
                 <div class="text-[14px] text-[#101828]">
                   {{ revenue.documentNumber }}
                 </div>
                 <div class="text-[14px] text-[#101828] text-center">
-                  {{ revenue.date }}
+                  {{ formatDate(revenue.date) }}
                 </div>
                 <div class="text-[14px] text-[#101828]">
                   {{ revenue.description }}
@@ -318,7 +306,7 @@
           @click="submitReport"
           class="bg-[#155dfc] text-white px-4 py-2 rounded-lg text-[14px] hover:bg-[#0d4cd9] transition-colors"
         >
-          Nộp báo cáo
+          {{ props.editData ? "Cập nhật báo cáo" : "Nộp báo cáo" }}
         </button>
       </div>
     </div>
@@ -339,89 +327,158 @@ interface FormData {
   taxCode: string;
   address: string;
   businessSector: string;
-  fromDate: string;
-  toDate: string;
-  location: string;
+  templateCode: string;
+  periodRange: string;
 }
 
 const props = defineProps<{
   isVisible: boolean;
+  editData?: any;
 }>();
 
 const emit = defineEmits<{
   (e: "close"): void;
-  (e: "submit", data: { formData: FormData; revenues: RevenueItem[] }): void;
+  (e: "submit", data: any): void;
 }>();
 
-// Form data
-const formData = ref<FormData>({
-  businessName: "",
-  taxCode: "",
-  address: "",
-  businessSector: "",
-  fromDate: "",
-  toDate: "",
-  location: "",
-});
+// Constants
+const STORAGE_KEY = "revenueReportLastOptions";
 
-// New revenue input
-const newRevenue = ref<RevenueItem>({
+const getDefaultFormData = (): FormData => {
+  // Load từ localStorage nếu có
+  if (process.client) {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return {
+          businessName:
+            parsed.businessName || "Cơ sở Điêu Khắc Trang Trí Vĩnh Tiến",
+          taxCode: parsed.taxCode || "042179006886",
+          address: parsed.address || "1955, xã Bình Minh, tỉnh Đồng Nai",
+          businessSector: parsed.businessSector || "",
+          templateCode:
+            parsed.templateCode ||
+            "S1a-HKD | Theo Thông tư 152/2025/TT-BTC ngày 31/12/2025",
+          periodRange: parsed.periodRange || "2025-01-01|2026-01-01",
+        };
+      } catch (e) {
+        console.error("Error loading saved options:", e);
+      }
+    }
+  }
+
+  // Giá trị mặc định nếu không có trong localStorage
+  return {
+    businessName: "Cơ sở Điêu Khắc Trang Trí Vĩnh Tiến",
+    taxCode: "042179006886",
+    address: "1955, xã Bình Minh, tỉnh Đồng Nai",
+    businessSector: "",
+    templateCode: "S1a-HKD | Theo Thông tư 152/2025/TT-BTC ngày 31/12/2025",
+    periodRange: "2025-01-01|2026-01-01",
+  };
+};
+
+const EMPTY_REVENUE_ITEM: RevenueItem = {
   documentNumber: "",
   date: "",
   description: "",
   amount: "",
   category: "",
-});
+};
+
+const CATEGORY_LABELS: Record<string, string> = {
+  goods: "Hàng hóa",
+  service: "Dịch vụ",
+  other: "Khác",
+};
+
+// Form data
+const formData = ref<FormData>(getDefaultFormData());
+
+// New revenue input
+const newRevenue = ref<RevenueItem>({ ...EMPTY_REVENUE_ITEM });
 
 // List of added revenues
 const revenues = ref<RevenueItem[]>([]);
 
-// Methods
-const closeOverlay = () => {
-  emit("close");
+// Helper Functions
+const formatAmountInput = (value: string) => {
+  const numericValue = value.replace(/[^0-9]/g, "");
+  return numericValue ? parseInt(numericValue).toLocaleString("vi-VN") : "";
 };
 
-const addRevenue = () => {
-  if (
-    newRevenue.value.documentNumber &&
-    newRevenue.value.date &&
-    newRevenue.value.description &&
-    newRevenue.value.amount
-  ) {
-    revenues.value.push({ ...newRevenue.value });
-    // Reset form
-    newRevenue.value = {
-      documentNumber: "",
-      date: "",
-      description: "",
-      amount: "",
-      category: "",
-    };
+const parseAmount = (amountString: string) =>
+  parseFloat(amountString.replace(/[.,đ\s]/g, "")) || 0;
+
+const formatDate = (dateString: string) => {
+  if (!dateString) return "";
+  const parts = dateString.split("-");
+  return parts.length === 3 && parts[0] && parts[1] && parts[2]
+    ? `${parts[2]}-${parts[1]}-${parts[0]}`
+    : dateString;
+};
+
+const getCategoryLabel = (category: string) =>
+  CATEGORY_LABELS[category] || category;
+
+const saveToLocalStorage = (data: FormData) => {
+  if (process.client) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {
+      console.error("Error saving options:", e);
+    }
   }
 };
 
-const removeRevenue = (index: number) => {
-  revenues.value.splice(index, 1);
+const resetForm = () => {
+  formData.value = getDefaultFormData();
+  revenues.value = [];
 };
 
-const getCategoryLabel = (category: string) => {
-  const labels: Record<string, string> = {
-    goods: "Hàng hóa",
-    service: "Dịch vụ",
-    other: "Khác",
+const createReportItem = (rev: RevenueItem) => {
+  const amount = parseAmount(rev.amount);
+  return {
+    documentNumber: rev.documentNumber,
+    documentDate: rev.date,
+    category: rev.category || "other",
+    itemName: rev.description,
+    description: `${rev.documentNumber} - ${rev.date}`,
+    quantity: 1,
+    unit: "lần",
+    unitPrice: amount,
+    amount,
+    taxRate: 0,
+    taxAmount: 0,
+    totalAmount: amount,
   };
-  return labels[category] || category;
 };
+
+// Methods
+const closeOverlay = () => emit("close");
+
+const addRevenue = () => {
+  const { documentNumber, date, description, amount } = newRevenue.value;
+  if (documentNumber && date && description && amount) {
+    revenues.value.push({ ...newRevenue.value });
+    newRevenue.value = { ...EMPTY_REVENUE_ITEM };
+  }
+};
+
+const onAmountInput = (event: Event) => {
+  const rawValue = (event.target as HTMLInputElement).value;
+  const numericValue = rawValue.replace(/[^0-9]/g, "");
+  newRevenue.value.amount = numericValue ? formatAmountInput(rawValue) : "";
+};
+
+const removeRevenue = (index: number) => revenues.value.splice(index, 1);
 
 const submitReport = () => {
-  // Validate required fields
-  if (
-    !formData.value.businessName ||
-    !formData.value.taxCode ||
-    !formData.value.address ||
-    !formData.value.fromDate ||
-    !formData.value.toDate
-  ) {
+  const { businessName, taxCode, address, templateCode, periodRange } =
+    formData.value;
+
+  if (!businessName || !taxCode || !address || !templateCode || !periodRange) {
     alert("Vui lòng điền đầy đủ các trường bắt buộc (*)");
     return;
   }
@@ -431,10 +488,97 @@ const submitReport = () => {
     return;
   }
 
-  emit("submit", {
-    formData: formData.value,
-    revenues: revenues.value,
-  });
+  const [fromDate, toDate] = periodRange.split("|");
+  if (!fromDate || !toDate) {
+    alert("Vui lòng chọn kỳ báo cáo hợp lệ");
+    return;
+  }
+
+  const items = revenues.value.map(createReportItem);
+  const totalRevenue = items.reduce((sum, item) => sum + item.amount, 0);
+  const title = `Báo cáo doanh thu ${new Date(fromDate).toLocaleDateString("vi-VN")} - ${new Date(toDate).toLocaleDateString("vi-VN")}`;
+
+  // Lưu lựa chọn hiện tại vào localStorage (chỉ khi tạo mới)
+  if (!props.editData) {
+    saveToLocalStorage(formData.value);
+  }
+
+  const reportData: any = {
+    title,
+    periodStart: fromDate,
+    periodEnd: toDate,
+    totalRevenue,
+    totalTax: 0,
+    netRevenue: totalRevenue,
+    status: "submitted",
+    notes: `Doanh nghiệp: ${businessName} - MST: ${taxCode}`,
+    metadata: {
+      businessName,
+      taxCode,
+      address,
+      businessSector: formData.value.businessSector,
+      templateCode,
+      documentType: "S1a-HKD",
+      regulation: "Thông tư 152/2025/TT-BTC",
+    },
+    items,
+  };
+
+  // Nếu là chỉnh sửa, thêm id vào
+  if (props.editData?.id) {
+    reportData.id = props.editData.id;
+  }
+
+  emit("submit", reportData);
+  resetForm();
+};
+
+// Check giá trị trước
+watch(
+  () => props.isVisible,
+  (newValue) => {
+    if (newValue) {
+      // Nếu có editData, load từ editData
+      if (props.editData) {
+        loadEditData();
+      } else {
+        // Nếu không có editData, load từ localStorage
+        formData.value = getDefaultFormData();
+        revenues.value = [];
+      }
+    } else {
+      // Khi đóng overlay, reset form
+      resetForm();
+    }
+  },
+);
+
+// Load data từ editData khi chỉnh sửa
+const loadEditData = () => {
+  if (!props.editData) return;
+
+  const { metadata, items, periodStart, periodEnd } = props.editData;
+
+  if (metadata) {
+    formData.value = {
+      businessName: metadata.businessName || "",
+      taxCode: metadata.taxCode || "",
+      address: metadata.address || "",
+      businessSector: metadata.businessSector || "",
+      templateCode: metadata.templateCode || "",
+      periodRange: `${periodStart}|${periodEnd}`,
+    };
+  }
+
+  if (items && Array.isArray(items)) {
+    revenues.value = items.map((item: any) => ({
+      documentNumber: item.documentNumber || "",
+      date: item.documentDate ? item.documentDate.split("T")[0] : "",
+      description: item.itemName || "",
+      amount: item.amount.toLocaleString("vi-VN") || "",
+      category: item.category || "",
+    }));
+  }
 };
 </script>
 
@@ -460,9 +604,13 @@ const submitReport = () => {
 
 /* Date input styling */
 input[type="date"]::-webkit-calendar-picker-indicator {
-  opacity: 0;
-  position: absolute;
-  right: 12px;
   cursor: pointer;
+  opacity: 1;
+  width: 16px;
+  height: 16px;
+}
+
+input[type="date"] {
+  position: relative;
 }
 </style>
