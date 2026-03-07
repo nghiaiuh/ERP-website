@@ -333,6 +333,9 @@
      SCRIPT - LOGIC & XỬ LÝ DỮ LIỆU
      ============================================================ -->
 <script setup lang="ts">
+// ===== 0. XÁC THỰC USER =====
+await useCheckUser();
+
 // ===== 1. CẤU HÌNH TRANG =====
 definePageMeta({
   breadcrumb: [

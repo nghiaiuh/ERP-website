@@ -68,7 +68,7 @@ export default defineEventHandler(async (event) => {
       .update(soChiPhi)
       .set({
         doanhNghiepId: doanhNghiepId,
-        mauSo: metadata?.documentType || 'S2c-HKD',
+        mauSo: metadata?.mauSo || 'S2c-HKD | Theo Thông tư 152/2025/TT-BTC ngày 31/12/2025',
         ngayBatDau: periodStart,
         ngayKetThuc: periodEnd,
         tongTien: totalExpense?.toString() || '0',

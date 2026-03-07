@@ -134,7 +134,7 @@ export const hoaDonMuaChiTiet = pgTable("hoa_don_mua_chi_tiet", {
 export const soDoanhThu = pgTable("so_doanh_thu", {
 	id: serial("id").primaryKey(),
 	doanhNghiepId: integer("doanh_nghiep_id").references(() => doanhNghiep.id, { onDelete: 'cascade' }),
-	mauSo: varchar("mau_so", { length: 50 }).default('S1a-HKD TT 152/2025/TT-BTC 31/12/2025'),
+	mauSo: varchar("mau_so", { length: 100 }).default('S1a-HKD TT 152/2025/TT-BTC 31/12/2025'),
 	ngayBatDau: date("ngay_bat_dau").notNull(),
 	ngayKetThuc: date("ngay_ket_thuc").notNull(),
 	tongTien: numeric("tong_tien", { precision: 18, scale: 2 }).default('0'),
@@ -148,7 +148,7 @@ export const soDoanhThu = pgTable("so_doanh_thu", {
 export const soChiPhi = pgTable("so_chi_phi", {
 	id: serial("id").primaryKey(),
 	doanhNghiepId: integer("doanh_nghiep_id").references(() => doanhNghiep.id, { onDelete: 'cascade' }),
-	mauSo: varchar("mau_so", { length: 50 }).default('S2c-HKD TT 152/2025/TT-BTC 31/12/2025'),
+	mauSo: varchar("mau_so", { length: 100 }).default('S2c-HKD TT 152/2025/TT-BTC 31/12/2025'),
 	ngayBatDau: date("ngay_bat_dau").notNull(),
 	ngayKetThuc: date("ngay_ket_thuc").notNull(),
 	tongTien: numeric("tong_tien", { precision: 18, scale: 2 }).default('0'),

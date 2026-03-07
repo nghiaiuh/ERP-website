@@ -20,40 +20,32 @@
         class="border-b border-[#e5e7eb] bg-white px-6 pt-6 pb-[25px] rounded-t-[10px]"
       >
         <div class="flex items-start justify-between">
+          <!-- Phần tiêu đề và badge trạng thái -->
           <div>
             <div class="flex items-center gap-2 mb-1">
+              <!-- Tiêu đề chính -->
               <h2 class="text-[20px] font-bold text-[#101828] leading-[28px]">
                 SỔ CHI TIẾT CHI PHÍ HÀNG HOÁ, DỊCH VỤ
               </h2>
+              <!-- Badge xem chi tiết -->
               <span
                 class="px-2 py-0.5 rounded-lg text-[12px] bg-blue-100 text-blue-700 border border-blue-200"
               >
                 Xem chi tiết
               </span>
             </div>
+            <!-- Thông tin mẫu số và quy định -->
             <p class="text-[14px] text-[#4a5565] leading-[20px]">
-              Mẫu số S2c-HKD | Theo Thông tư 152/2025/TT-BTC ngày 31/12/2025
+              Mẫu số {{ reportData?.metadata?.mauSo }}
             </p>
           </div>
+          <!-- Nút đóng overlay -->
           <button
             type="button"
             class="flex h-6 w-6 items-center justify-center rounded opacity-70 hover:opacity-100 transition-opacity"
             @click="closeOverlay"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
+            <img src="/icon/close.svg" alt="Close" class="w-6 h-6" />
           </button>
         </div>
       </div>
@@ -128,7 +120,7 @@
           </div>
 
           <!-- Lưới 2 cột: Mẫu số và Ngày tháng -->
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-[450px_1fr] gap-4">
             <!-- Cột 1: Mẫu số -->
             <div>
               <label class="block text-[14px] text-[#364153] mb-2">
@@ -137,7 +129,7 @@
               <div
                 class="w-full h-9 px-3 py-1 bg-gray-50 rounded-lg text-[14px] text-[#101828] flex items-center"
               >
-                {{ reportData?.metadata?.templateCode || "N/A" }}
+                {{ reportData?.metadata?.mauSo || "N/A" }}
               </div>
             </div>
             <!-- Cột 2: Ngày tháng -->
@@ -166,12 +158,10 @@
           </div>
 
           <!-- Container bảng chi phí -->
-          <div
-            class="border border-[#e5e7eb] rounded-[10px] overflow-hidden mb-4"
-          >
+          <div class="border border-[#e5e7eb] rounded-[10px] overflow-hidden">
             <!-- Header của bảng (các cột tiêu đề) -->
             <div
-              class="bg-[#f9fafb] border-b border-[#e5e7eb] px-5 py-4 grid grid-cols-[100px_110px_165px_110px_130px] gap-2"
+              class="bg-[#f9fafb] border-b border-[#e5e7eb] px-5 py-4 grid grid-cols-[100px_110px_220px_110px_200px] gap-2"
             >
               <div
                 class="text-[12px] font-bold text-[#364153] uppercase tracking-wider text-center"
@@ -212,21 +202,21 @@
               <div
                 v-for="(expense, index) in expenses"
                 :key="index"
-                class="border-b border-[#e5e7eb] px-5 py-3 grid grid-cols-[100px_110px_165px_110px_130px] gap-2 items-center"
+                class="border-b border-[#e5e7eb] px-5 py-3 grid grid-cols-[100px_110px_220px_110px_200px] gap-2 items-center"
               >
-                <div class="text-[14px] text-[#101828]">
+                <div class="text-[14px] text-[#101828] text-center">
                   {{ expense.documentNumber }}
                 </div>
                 <div class="text-[14px] text-[#101828] text-center">
                   {{ formatDate(expense.date) }}
                 </div>
-                <div class="text-[14px] text-[#101828]">
+                <div class="text-[14px] text-[#101828] text-center">
                   {{ expense.description }}
                 </div>
-                <div class="text-[14px] text-[#101828] text-right">
+                <div class="text-[14px] text-[#101828] text-center">
                   {{ expense.amount }}
                 </div>
-                <div class="text-[14px] text-[#101828]">
+                <div class="text-[14px] text-[#101828] text-center">
                   {{ getCategoryLabel(expense.category) }}
                 </div>
               </div>
@@ -234,12 +224,15 @@
 
             <!-- Dòng tổng cộng -->
             <div
-              class="bg-[#f9fafb] border-t-2 border-[#e5e7eb] px-5 py-3 grid grid-cols-[100px_110px_165px_110px_130px] gap-2 items-center"
+              class="bg-[#f9fafb] border-t-2 border-[#e5e7eb] px-5 py-3 grid grid-cols-[100px_110px_220px_110px_200px] gap-2 items-center"
             >
               <div></div>
               <div></div>
-              <div class="text-[14px] font-bold text-[#101828]">Tổng cộng:</div>
+              <div></div>
               <div class="text-[14px] font-bold text-[#101828] text-right">
+                Tổng cộng:
+              </div>
+              <div class="text-[14px] font-bold text-[#101828] text-center">
                 {{ totalAmountFormatted }}
               </div>
               <div></div>
@@ -323,7 +316,7 @@
               d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
             ></path>
           </svg>
-          Xóa báo cáo
+          Xoá báo cáo
         </button>
         <!-- Nhóm nút bên phải -->
         <div class="flex gap-3">
@@ -424,15 +417,13 @@ const expenses = ref<ExpenseItem[]>([]);
 // ====================================
 
 /**
- * Format số tiền thành định dạng Việt Nam (có dấu phân cách hàng nghìn và đơn vị đ)
+ * Format số tiền thành định dạng Việt Nam
  * @param value - Giá trị số cần format
- * @returns Chuỗi đã được format
+ * @returns Chuỗi đã được format (không có đơn vị đ)
  */
 const formatAmountInput = (value: string) => {
   const numericValue = value.replace(/[^0-9]/g, "");
-  return numericValue
-    ? parseInt(numericValue).toLocaleString("vi-VN") + "đ"
-    : "";
+  return numericValue ? parseInt(numericValue).toLocaleString("vi-VN") : "";
 };
 
 /**
@@ -499,10 +490,10 @@ const formatPeriodRange = computed(() => {
  */
 const totalAmountFormatted = computed(() => {
   const total = expenses.value.reduce((sum, exp) => {
-    const amount = parseFloat(exp.amount.replace(/[.,đ\s]/g, "")) || 0;
+    const amount = parseFloat(exp.amount.replace(/[.,\s]/g, "")) || 0;
     return sum + amount;
   }, 0);
-  return total.toLocaleString("vi-VN") + "đ";
+  return total.toLocaleString("vi-VN");
 });
 
 // ====================================
@@ -517,9 +508,9 @@ const handleEdit = () => {
   emit("edit", props.reportData);
 };
 
-/** Xử lý xóa báo cáo */
+/** Xử lý xóa báo cáo (có xác nhận) */
 const handleDelete = () => {
-  if (confirm("Bạn có chắc chắn muốn xóa báo cáo này không?")) {
+  if (confirm("Bạn có chắc chắn muốn Xoá báo cáo này không?")) {
     emit("delete", props.reportData?.id);
   }
 };
@@ -528,7 +519,10 @@ const handleDelete = () => {
 // WATCHERS (THEO DÕI SỰ THAY ĐỔI)
 // ====================================
 
-/** Theo dõi sự thay đổi của reportData để load lại dữ liệu */
+/**
+ * Theo dõi sự thay đổi của reportData để load lại dữ liệu
+ * Chạy ngay lập tức (immediate: true)
+ */
 watch(
   () => props.reportData,
   (newData) => {

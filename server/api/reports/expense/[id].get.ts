@@ -75,8 +75,7 @@ export default defineEventHandler(async (event) => {
         address: expenseBook.diaChi || '1955, xã Bình Minh, tỉnh Đồng Nai',
         businessSector: '',
         location: '',
-        documentType: 'S2c-HKD',
-        regulation: 'Thông tư 152/2025/TT-BTC',
+        mauSo: expenseBook.mauSo || 'S2c-HKD | Theo Thông tư 152/2025/TT-BTC ngày 31/12/2025',
       },
       items: entries.map(entry => ({
         id: entry.id,

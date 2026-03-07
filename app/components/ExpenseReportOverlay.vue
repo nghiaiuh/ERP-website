@@ -38,7 +38,7 @@
             </div>
             <!-- Thông tin mẫu số -->
             <p class="text-[14px] text-[#4a5565] leading-[20px]">
-              Mẫu số S2c-HKD | Theo Thông tư 152/2025/TT-BTC ngày 31/12/2025
+              Mẫu số {{ formData.templateCode }}
             </p>
           </div>
           <!-- Nút đóng overlay -->
@@ -47,20 +47,7 @@
             class="flex h-6 w-6 items-center justify-center rounded opacity-70 hover:opacity-100 transition-opacity"
             @click="closeOverlay"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
+            <img src="/icon/close.svg" alt="Close" class="w-6 h-6" />
           </button>
         </div>
       </div>
@@ -155,7 +142,7 @@
                 </option>
               </select>
             </div>
-            <!-- Cột 2: Kỳ báo cáo -->
+            <!-- Cột 2: Ngày tháng (kỳ báo cáo) -->
             <div>
               <label class="block text-[14px] text-[#364153] mb-2">
                 Ngày tháng <span class="text-[#fb2c36]">*</span>
@@ -164,11 +151,17 @@
                 v-model="formData.periodRange"
                 class="w-full h-9 px-3 py-1 border border-transparent bg-white rounded-lg text-[14px] text-[#101828] focus:border-[#155dfc] focus:outline-none appearance-none cursor-pointer"
               >
+                <option value="2024-01-01|2025-01-01">
+                  1/1/2024 - 1/1/2025
+                </option>
                 <option value="2025-01-01|2026-01-01">
                   1/1/2025 - 1/1/2026
                 </option>
                 <option value="2026-01-01|2027-01-01">
                   1/1/2026 - 1/1/2027
+                </option>
+                <option value="2027-01-01|2028-01-01">
+                  1/1/2027 - 1/1/2028
                 </option>
               </select>
             </div>
@@ -187,9 +180,7 @@
           </div>
 
           <!-- Container bảng chi phí -->
-          <div
-            class="border border-[#e5e7eb] rounded-[10px] overflow-hidden mb-4"
-          >
+          <div class="border border-[#e5e7eb] rounded-[10px] overflow-hidden">
             <!-- Header của bảng (các cột tiêu đề) -->
             <div
               class="bg-[#f9fafb] border-b border-[#e5e7eb] px-5 py-4 grid grid-cols-[100px_110px_165px_110px_130px_110px] gap-2"
@@ -241,7 +232,7 @@
               <input
                 v-model="newExpense.date"
                 type="date"
-                class="h-9 px-3 py-1 border border-transparent bg-white rounded-lg text-[14px] text-[#101828] placeholder:text-[#717182] focus:border-[#155dfc] focus:outline-none text-center"
+                class="h-9 px-1 py-1 border border-transparent bg-white rounded-lg text-[14px] text-[#101828] placeholder:text-[#717182] focus:border-[#155dfc] focus:outline-none text-center"
               />
               <!-- Ô nhập diễn giải -->
               <input
@@ -532,20 +523,18 @@ const expenses = ref<ExpenseItem[]>([]);
 // ====================================
 
 /**
- * Format số tiền thành định dạng Việt Nam (có đơn vị đ)
+ * Format số tiền thành định dạng Việt Nam
  * @param value - Giá trị số cần format
- * @returns Chuỗi đã được format
+ * @returns Chuỗi đã được format (không có đơn vị đ)
  */
 const formatAmountInput = (value: string) => {
   const numericValue = value.replace(/[^0-9]/g, "");
-  return numericValue
-    ? parseInt(numericValue).toLocaleString("vi-VN") + "đ"
-    : "";
+  return numericValue ? parseInt(numericValue).toLocaleString("vi-VN") : "";
 };
 
 /**
  * Chuyển chuỗi số tiền đã format thành số
- * @param amountString - Chuỗi số tiền (có dấu phân cách và đơn vị)
+ * @param amountString - Chuỗi số tiền (có dấu phân cách)
  * @returns Giá trị số
  */
 const parseAmount = (amountString: string) =>
@@ -602,6 +591,8 @@ const resetForm = () => {
 const createReportItem = (exp: ExpenseItem) => {
   const amount = parseAmount(exp.amount);
   return {
+    documentNumber: exp.documentNumber,
+    documentDate: exp.date,
     category: exp.category || "other",
     itemName: exp.description,
     description: `${exp.documentNumber} - ${exp.date}`,
@@ -700,9 +691,7 @@ const submitReport = () => {
       taxCode,
       address,
       businessSector: formData.value.businessSector,
-      templateCode,
-      documentType: "S2c-HKD",
-      regulation: "Thông tư 152/2025/TT-BTC",
+      mauSo: templateCode,
     },
     items,
   };
@@ -757,17 +746,17 @@ const loadEditData = () => {
       taxCode: metadata.taxCode || "",
       address: metadata.address || "",
       businessSector: metadata.businessSector || "",
-      templateCode: metadata.templateCode || "",
+      templateCode: metadata.mauSo || metadata.templateCode || "",
       periodRange: `${periodStart}|${periodEnd}`,
     };
   }
 
   if (items && Array.isArray(items)) {
     expenses.value = items.map((item: any) => ({
-      documentNumber: item.description?.split("-")[0]?.trim() || "",
-      date: item.description?.split("-")[1]?.trim() || "",
+      documentNumber: item.documentNumber || "",
+      date: item.documentDate ? item.documentDate.split("T")[0] : "",
       description: item.itemName || "",
-      amount: item.amount.toLocaleString("vi-VN") + "đ" || "",
+      amount: item.amount.toLocaleString("vi-VN") || "",
       category: item.category || "",
     }));
   }

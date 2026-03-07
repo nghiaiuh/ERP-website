@@ -319,6 +319,9 @@
 </template>
 
 <script setup lang="ts">
+// Xác thực user
+await useCheckUser();
+
 // Breadcrumb
 definePageMeta({
   breadcrumb: [

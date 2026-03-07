@@ -38,7 +38,7 @@
             </div>
             <!-- Thông tin mẫu số -->
             <p class="text-[14px] text-[#4a5565] leading-[20px]">
-              Mẫu số S1a-HKD | Theo Thông tư 152/2025/TT-BTC ngày 31/12/2025
+              Mẫu số {{ formData.templateCode }}
             </p>
           </div>
           <!-- Nút đóng overlay -->
@@ -175,7 +175,7 @@
           <div class="flex items-center gap-3 mb-4">
             <div class="w-1 h-5 bg-[#155dfc] rounded-full"></div>
             <h3 class="text-[16px] font-bold text-[#101828] leading-[24px]">
-              Bảng chi tiết chi phí
+              Bảng chi tiết doanh thu
             </h3>
           </div>
 
@@ -638,9 +638,7 @@ const submitReport = () => {
       taxCode,
       address,
       businessSector: formData.value.businessSector,
-      templateCode,
-      documentType: "S1a-HKD",
-      regulation: "Thông tư 152/2025/TT-BTC",
+      mauSo: templateCode,
     },
     items,
   };
@@ -695,7 +693,7 @@ const loadEditData = () => {
       taxCode: metadata.taxCode || "",
       address: metadata.address || "",
       businessSector: metadata.businessSector || "",
-      templateCode: metadata.templateCode || "",
+      templateCode: metadata.mauSo || metadata.templateCode || "",
       periodRange: `${periodStart}|${periodEnd}`,
     };
   }

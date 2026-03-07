@@ -289,8 +289,7 @@
                   <button
                     class="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-gray-200 transition-colors"
                     @click.stop="toggleRow(debt.id)"
-                  >
-                  </button>
+                  ></button>
                   <p class="text-[#101828] w-[95px]">{{ debt.customer }}</p>
                 </div>
                 <div class="px-2 py-2 text-[#4a5565]">
@@ -494,6 +493,9 @@
 </template>
 
 <script setup lang="ts">
+// Xác thực user
+await useCheckUser();
+
 // Breadcrumb
 definePageMeta({
   breadcrumb: [

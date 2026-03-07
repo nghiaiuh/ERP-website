@@ -36,7 +36,7 @@
             </div>
             <!-- Thông tin mẫu số và quy định -->
             <p class="text-[14px] text-[#4a5565] leading-[20px]">
-              Mẫu số S1a-HKD | Theo Thông tư 152/2025/TT-BTC ngày 31/12/2025
+              Mẫu số {{ reportData?.metadata?.mauSo }}
             </p>
           </div>
           <!-- Nút đóng overlay -->
@@ -120,7 +120,7 @@
           </div>
 
           <!-- Lưới 2 cột: Mẫu số và Ngày tháng -->
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-[450px_1fr] gap-4">
             <!-- Cột 1: Mẫu số (chỉ đọc) -->
             <div>
               <label class="block text-[14px] text-[#364153] mb-2">
@@ -129,7 +129,7 @@
               <div
                 class="w-full h-9 px-3 py-1 bg-gray-50 rounded-lg text-[14px] text-[#101828] flex items-center"
               >
-                {{ reportData?.metadata?.templateCode || "N/A" }}
+                {{ reportData?.metadata?.mauSo || "N/A" }}
               </div>
             </div>
             <!-- Cột 2: Kỳ báo cáo (chỉ đọc) -->
@@ -382,9 +382,9 @@ const formatAmountInput = (value: string) => {
  */
 const formatDate = (dateString: string) => {
   if (!dateString) return "";
-  const parts = dateString.split("-");
-  return parts.length === 3 && parts[0] && parts[1] && parts[2]
-    ? `${parts[2]}-${parts[1]}-${parts[0]}`
+  const dates = dateString.split("-");
+  return dates.length === 3 && dates[0] && dates[1] && dates[2]
+    ? `${dates[2]}-${dates[1]}-${dates[0]}`
     : dateString;
 };
 

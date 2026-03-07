@@ -7,6 +7,7 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 select * from don_chi_phi
+select * from _chi_phi
 select * from so_doanh_thu
 select * from don_doanh_thu
 select * from doanh_nghiep

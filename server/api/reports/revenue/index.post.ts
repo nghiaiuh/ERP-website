@@ -58,7 +58,7 @@ export default defineEventHandler(async (event) => {
       const newBooks = await db.insert(soDoanhThu)
         .values({
           doanhNghiepId: doanhNghiepId,
-          mauSo: metadata?.documentType || 'S1a-HKD',
+          mauSo: metadata?.mauSo || 'S1a-HKD | Theo Thông tư 152/2025/TT-BTC ngày 31/12/2025',
           ngayBatDau: periodStart,
           ngayKetThuc: periodEnd,
           tongTien: totalRevenue?.toString() || '0',

@@ -70,7 +70,8 @@
           </button>
 
           <button
-            class="w-full sm:w-auto px-6 sm:px-7 lg:px-8 py-4 sm:py-4 lg:py-5 bg-[#313232] rounded-[30px] sm:rounded-[35px] lg:rounded-[40px] inline-flex justify-center items-center hover:bg-gray-800 transition-colors"
+            class="w-full sm:w-auto px-6 sm:px-7 lg:px-8 py-4 sm:py-4 lg:py-5 bg-[#313232] rounded-[30px] sm:rounded-[35px] lg:rounded-[40px] inline-flex justify-center items-center hover:bg-gray-800 transition-colors cursor-pointer"
+            @click="navigateTo('/ke-toan/thu-chi')"
           >
             <span
               class="text-center justify-center text-zinc-100 text-lg sm:text-xl lg:text-2xl font-medium capitalize leading-5 sm:leading-4"
@@ -125,45 +126,10 @@
 </template>
 
 <script lang="ts" setup>
-// Check authentication on page load
-const token = useCookie("jwt_token");
+// Xác thực user
+await useCheckUser();
 
-// If no token, redirect to login
-if (!token.value) {
-  await navigateTo("/login");
-}
-
-// Verify token is valid
-const { data: user } = await useAsyncData<JwtUserInfo | null>(
-  "home-user",
-  async () => {
-    if (!token.value) return null;
-
-    try {
-      const result = await $fetch<{ success: boolean; user: JwtUserInfo }>(
-        "/api/auth/verifyToken",
-        {
-          method: "POST",
-          body: { token: token.value },
-        },
-      );
-
-      return result.success ? result.user : null;
-    } catch (error) {
-      // If token verification fails, redirect to login
-      console.error("Token verification failed:", error);
-      await navigateTo("/login");
-      return null;
-    }
-  },
-);
-
-// If user data couldn't be fetched, redirect to login
-if (!user.value) {
-  await navigateTo("/login");
-}
-
-// Prevent using default layout since we have our own navbar
+// Cấu hình trang
 definePageMeta({
   layout: false,
 });
