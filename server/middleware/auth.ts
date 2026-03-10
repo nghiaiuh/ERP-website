@@ -1,3 +1,12 @@
+/*
+Flow:
+        client request
+              ↓
+        middleware auth
+              ↓
+        API endpoint
+*/
+
 import jwt from 'jsonwebtoken'
 
 export default defineEventHandler(async (event) => {
@@ -7,15 +16,20 @@ export default defineEventHandler(async (event) => {
     return
   }
   
-  // Get token from Authorization header
+  // Accept token from Authorization header or jwt_toker cookie
   const authHeader = getHeader(event, 'authorization')
-  
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return // Allow requests without auth for now
+  let token: string | undefined
+  if (authHeader?.startsWith('Bearer ')) {
+    token = authHeader.substring(7)
+  } else {
+    const cookieHeader = getHeader(event, 'cookie') ?? ''
+    const match = cookieHeader.match(/(?:^|;\s*)jwt_token=([^;]+)/)
+    token = match?.[1]
   }
   
-  const token = authHeader.substring(7)
-  
+  if(!token) {
+    throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
+  }
   try {
     const config = useRuntimeConfig()
     const jwtSecret = config.jwtSecret || process.env.JWT_SECRET!
@@ -24,7 +38,7 @@ export default defineEventHandler(async (event) => {
     
     // Add user info to event context
     event.context.user = decoded
-  } catch (error) {
-    console.error('Token verification failed:', error)
+  } catch {
+    throw createError({ statusCode: 401, statusMessage: 'Invalid or expired token' })
   }
 })
