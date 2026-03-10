@@ -13,13 +13,11 @@
 </template>
 
 <script lang="ts" setup>
-// Xác thực user
+
 await useCheckUser();
 
-// Tabs configuration
 const tabs = useAccountingTabs();
 
-// Cấu hình trang
 definePageMeta({
   breadcrumb: [
     { label: "Kế toán & Tài chính", path: "/ke-toan" },

@@ -7,8 +7,6 @@ export default defineEventHandler(async (event) => {
   
   try {
     const body = await readBody(event)
-    
-    // Validate input
     const { email, password, name } = body
     
     if (!email || !password) {
@@ -18,16 +16,14 @@ export default defineEventHandler(async (event) => {
       })
     }
     
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       throw createError({
         statusCode: 400,
         statusMessage: 'Invalid email format'
       })
     }
-    
-    // Validate password strength (minimum 6 characters)
+  
     if (password.length < 6) {
       throw createError({
         statusCode: 400,
@@ -35,7 +31,6 @@ export default defineEventHandler(async (event) => {
       })
     }
     
-    // Check if user already exists
     const existingUser = await db
       .select()
       .from(users)
@@ -53,7 +48,6 @@ export default defineEventHandler(async (event) => {
     const saltRounds = 10
     const hashedPassword = await bcrypt.hash(password, saltRounds)
     
-    // Create user
     const newUser = await db
       .insert(users)
       .values({

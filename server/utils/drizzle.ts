@@ -1,4 +1,3 @@
-import 'dotenv/config'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import * as schema from '../db/schema'
@@ -14,7 +13,6 @@ pool.on('error', (err) => {
 export const db = drizzle(pool, { schema })
 export const useDrizzle = () => db
 
-// Export all tables for easy access
 export const { 
   users,
   doanhNghiep,

@@ -51,7 +51,6 @@ export default defineEventHandler(async (event) => {
       })
     }
     
-    // Generate JWT token
     const config = useRuntimeConfig()
     const jwtSecret = config.jwtSecret || process.env.JWT_SECRET!
     

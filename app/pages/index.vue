@@ -126,10 +126,7 @@
 </template>
 
 <script lang="ts" setup>
-// Xác thực user
 await useCheckUser();
-
-// Cấu hình trang
 definePageMeta({
   layout: false,
 });

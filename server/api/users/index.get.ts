@@ -11,7 +11,6 @@ export default defineEventHandler(async (event) => {
       offset = 0
     } = query
 
-    // Fetch all users (excluding password for security)
     const allUsers = await db
       .select({
         id: users.id,

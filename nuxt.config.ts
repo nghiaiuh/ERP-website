@@ -14,7 +14,7 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    jwtSecret: process.env.JWT_SECRET || 'your-secret-key-change-this-in-production'
+    jwtSecret: process.env.JWT_SECRET
   },
 
   modules: ["@nuxt/image"]

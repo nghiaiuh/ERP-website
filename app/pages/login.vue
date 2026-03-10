@@ -1,11 +1,8 @@
 <template>
   <div class="bg-white h-screen overflow-hidden">
-    <!-- Main Container -->
     <div class="flex gap-6 items-center justify-center px-8 py-6 h-full">
-      <!-- Left side - Login Form -->
       <div class="flex items-center justify-center flex-1 h-full">
         <div class="flex flex-col gap-6 items-start w-[380px]">
-          <!-- Intro -->
           <div class="flex flex-col gap-4 items-start whitespace-nowrap">
             <h1
               class="text-[28px] text-[#0c1421] text-center tracking-[0.28px] font-semibold"
@@ -18,13 +15,10 @@
               Đăng nhập để bắt đầu công việc của bạn!
             </p>
           </div>
-
-          <!-- Form -->
           <form
             class="flex flex-col gap-4 items-end justify-center w-full"
             @submit.prevent="submitForm"
           >
-            <!-- Email Input -->
             <div class="flex flex-col gap-1.5 items-start w-full">
               <label
                 for="email"
@@ -43,8 +37,6 @@
                 />
               </div>
             </div>
-
-            <!-- Password Input -->
             <div class="flex flex-col gap-1.5 items-start w-full">
               <label
                 for="password"
@@ -63,32 +55,24 @@
                 />
               </div>
             </div>
-
-            <!-- Forgot Password -->
             <a
               href="#"
               class="text-[14px] text-[#1e4ae9] tracking-[0.14px] text-center"
             >
               Quên mật khẩu
             </a>
-
-            <!-- Error Message -->
             <div
               v-if="error"
               class="w-full rounded-xl bg-red-50 border border-red-200 p-3"
             >
               <p class="text-xs text-red-800">{{ error }}</p>
             </div>
-
-            <!-- Success Message -->
             <div
               v-if="success"
               class="w-full rounded-xl bg-green-50 border border-green-200 p-3"
             >
               <p class="text-xs text-green-800">{{ success }}</p>
             </div>
-
-            <!-- Sign In Button -->
             <button
               type="submit"
               :disabled="loading"
@@ -98,16 +82,12 @@
               <span v-else>Sign in</span>
             </button>
           </form>
-
-          <!-- Sign Up Link -->
           <p class="text-[14px] text-center tracking-[0.14px] w-full">
             <span class="text-[#313957]">Bạn chưa có tài khoản? </span>
             <a href="#" class="text-[#1e4ae9]">Liên hệ</a>
           </p>
         </div>
       </div>
-
-      <!-- Right side - Art -->
       <div class="flex items-center flex-1 h-full">
         <div class="w-full h-[100%] rounded-2xl overflow-hidden">
           <img
@@ -143,7 +123,6 @@ async function submitForm() {
   }
 
   loading.value = true;
-  // API call
   try {
     const result = await $fetch("/api/auth/login", {
       method: "POST",
@@ -152,8 +131,6 @@ async function submitForm() {
         password: form.password,
       },
     });
-
-    // Save token to cookie
     const tokenCookie = useCookie("jwt_token", {
       maxAge: 60 * 60 * 24 * 7, // 7 days
       path: "/",
@@ -171,8 +148,6 @@ async function submitForm() {
     }, 1000);
   } catch (err: any) {
     console.error("Login error:", err);
-
-    // Handle different error types
     if (err.statusCode === 401) {
       error.value = "Invalid username/email or password";
     } else if (err.data?.statusMessage) {

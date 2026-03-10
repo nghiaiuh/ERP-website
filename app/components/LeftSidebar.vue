@@ -170,8 +170,8 @@ const menuItems = computed(() => [
   {
     label: "Marketing",
     icon: "/icon/marketing.svg",
-    href: "#",
-    active: false,
+    href: "/marketing/chien-luoc",
+    active: route.path.startsWith("/marketing/chien-luoc"),
   },
   {
     label: "Dự án thi công",

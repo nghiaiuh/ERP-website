@@ -70,12 +70,12 @@ export default defineEventHandler(async (event) => {
       submittedAt: revenueBook.createdAt,
       amount: parseFloat(revenueBook.tongTien || '0'),
       metadata: {
-        businessName: revenueBook.tenDoanhNghiep || 'Cơ sở Điêu Khắc Trang Trí Vĩnh Tiến',
-        taxCode: revenueBook.maSoThue || '042179006886',
-        address: revenueBook.diaChi || '1955, xã Bình Minh, tỉnh Đồng Nai',
+        businessName: revenueBook.tenDoanhNghiep,
+        taxCode: revenueBook.maSoThue,
+        address: revenueBook.diaChi,
         businessSector: '',
         location: '',
-        mauSo: revenueBook.mauSo || 'S1a-HKD | Theo Thông tư 152/2025/TT-BTC ngày 31/12/2025',
+        mauSo: revenueBook.mauSo,
       },
       items: entries.map(entry => ({
         id: entry.id,

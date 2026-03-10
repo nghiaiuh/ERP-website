@@ -3,32 +3,23 @@
     <div class="max-w-6xl mx-auto">
       <h1 class="text-3xl font-bold text-gray-900 mb-2">Danh sách Users</h1>
       <p class="text-gray-600 mb-6">Dữ liệu từ bảng users trong database</p>
-
-      <!-- Loading State -->
       <div v-if="pending" class="flex justify-center items-center py-12">
         <div
           class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"
         ></div>
       </div>
-
-      <!-- Error State -->
       <div
         v-else-if="error"
         class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6"
       >
         <p class="text-red-800">❌ Lỗi: {{ error.message }}</p>
       </div>
-
-      <!-- Users Table -->
       <div v-else class="bg-white rounded-lg shadow overflow-hidden">
-        <!-- Stats -->
         <div class="bg-blue-50 px-6 py-4 border-b border-blue-100">
           <p class="text-blue-900 font-semibold">
             Tổng số users: <span class="text-2xl">{{ usersData.length }}</span>
           </p>
         </div>
-
-        <!-- Table -->
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
@@ -87,14 +78,10 @@
             </tbody>
           </table>
         </div>
-
-        <!-- Empty State -->
         <div v-if="usersData.length === 0" class="text-center py-12">
           <p class="text-gray-500 text-lg">Chưa có user nào trong database</p>
         </div>
       </div>
-
-      <!-- Raw Data (for debugging) -->
       <details class="mt-6 bg-gray-100 rounded-lg p-4">
         <summary class="cursor-pointer font-semibold text-gray-700">
           📋 Xem Raw Data (JSON)
@@ -108,13 +95,10 @@
 </template>
 
 <script lang="ts" setup>
-// Fetch users from API
 const { data: users, pending, error } = await useFetch("/api/users");
 
-// Type assertion for users data
 const usersData = computed(() => (users.value as any)?.data || []);
 
-// Format date helper
 const formatDate = (date: string | null) => {
   if (!date) return "-";
   return new Date(date).toLocaleString("vi-VN", {

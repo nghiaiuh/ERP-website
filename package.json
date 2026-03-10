@@ -24,7 +24,7 @@
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^25.0.10",
+    "@types/node": "^25.3.5",
     "@types/pg": "^8.16.0",
     "drizzle-kit": "^0.31.8"
   }

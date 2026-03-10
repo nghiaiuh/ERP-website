@@ -574,38 +574,40 @@ const handleExpenseDelete = async (reportId: string) => {
 };
 
 const handleRevenueSubmit = async (data: any) => {
+  const {
+    id,
+    title,
+    periodStart,
+    periodEnd,
+    totalRevenue,
+    totalTax,
+    netRevenue,
+    status,
+    notes,
+    metadata,
+    items,
+  } = data;
+  const common = {
+    periodStart,
+    periodEnd,
+    totalRevenue: totalRevenue || 0,
+    totalTax: totalTax || 0,
+    netRevenue: netRevenue || 0,
+    status: status || "draft",
+    notes,
+    metadata,
+    items: items || [],
+  };
   try {
-    if (data.id) {
-      // Chế độ chỉnh sửa: Cập nhật báo cáo hiện tại vào database
-      await updateRevenueReport(data.id, {
-        periodStart: data.periodStart,
-        periodEnd: data.periodEnd,
-        totalRevenue: data.totalRevenue || 0,
-        totalTax: data.totalTax || 0,
-        netRevenue: data.netRevenue || 0,
-        status: data.status || "draft",
-        notes: data.notes,
-        metadata: data.metadata,
-        items: data.items || [],
-      });
+    if (id) {
+      await updateRevenueReport(id, common);
       console.log("Revenue report updated successfully", data);
       revenueEditData.value = null;
     } else {
-      // Chế độ tạo mới: Tạo báo cáo mới
-      const reportCode = `REV-${Date.now()}`;
-
       await createRevenueReport({
-        title: data.title,
-        reportCode: reportCode,
-        periodStart: data.periodStart,
-        periodEnd: data.periodEnd,
-        totalRevenue: data.totalRevenue || 0,
-        totalTax: data.totalTax || 0,
-        netRevenue: data.netRevenue || 0,
-        status: data.status || "draft",
-        notes: data.notes,
-        metadata: data.metadata,
-        items: data.items || [],
+        title,
+        reportCode: `REV-${Date.now()}`,
+        ...common,
       });
       console.log("Revenue report created successfully");
     }
@@ -617,38 +619,40 @@ const handleRevenueSubmit = async (data: any) => {
 };
 
 const handleExpenseSubmit = async (data: any) => {
+  const {
+    id,
+    title,
+    periodStart,
+    periodEnd,
+    totalExpense,
+    totalTax,
+    netExpense,
+    status,
+    notes,
+    metadata,
+    items,
+  } = data;
+  const common = {
+    periodStart,
+    periodEnd,
+    totalExpense: totalExpense || 0,
+    totalTax: totalTax || 0,
+    netExpense: netExpense || 0,
+    status: status || "draft",
+    notes,
+    metadata,
+    items: items || [],
+  };
   try {
-    if (data.id) {
-      // Chế độ chỉnh sửa: Cập nhật báo cáo hiện tại vào database
-      await updateExpenseReport(data.id, {
-        periodStart: data.periodStart,
-        periodEnd: data.periodEnd,
-        totalExpense: data.totalExpense || 0,
-        totalTax: data.totalTax || 0,
-        netExpense: data.netExpense || 0,
-        status: data.status || "draft",
-        notes: data.notes,
-        metadata: data.metadata,
-        items: data.items || [],
-      });
+    if (id) {
+      await updateExpenseReport(id, common);
       console.log("Expense report updated successfully", data);
       expenseEditData.value = null;
     } else {
-      // Chế độ tạo mới: Tạo báo cáo mới
-      const reportCode = `EXP-${Date.now()}`;
-
       await createExpenseReport({
-        title: data.title,
-        reportCode: reportCode,
-        periodStart: data.periodStart,
-        periodEnd: data.periodEnd,
-        totalExpense: data.totalExpense || 0,
-        totalTax: data.totalTax || 0,
-        netExpense: data.netExpense || 0,
-        status: data.status || "draft",
-        notes: data.notes,
-        metadata: data.metadata,
-        items: data.items || [],
+        title,
+        reportCode: `EXP-${Date.now()}`,
+        ...common,
       });
       console.log("Expense report created successfully");
     }
@@ -668,5 +672,3 @@ const applyFilters = () => {
   });
 };
 </script>
-
-<style scoped></style>

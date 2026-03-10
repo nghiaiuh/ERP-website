@@ -30,9 +30,9 @@ export default defineEventHandler(async (event) => {
         // Create new business
         const newBusiness = await db.insert(doanhNghiep)
           .values({
-            tenDoanhNghiep: metadata.businessName || 'Cơ sở Điêu Khắc Trang Trí Vĩnh Tiến',
+            tenDoanhNghiep: metadata.businessName,
             maSoThue: metadata.taxCode,
-            diaChi: metadata.address || '1955, xã Bình Minh, tỉnh Đồng Nai',
+            diaChi: metadata.address,
           })
           .returning()
         
@@ -58,7 +58,7 @@ export default defineEventHandler(async (event) => {
       const newBooks = await db.insert(soChiPhi)
         .values({
           doanhNghiepId: doanhNghiepId,
-          mauSo: metadata?.mauSo || 'S2c-HKD | Theo Thông tư 152/2025/TT-BTC ngày 31/12/2025',
+          mauSo: metadata?.mauSo,
           ngayBatDau: periodStart,
           ngayKetThuc: periodEnd,
           tongTien: totalExpense?.toString() || '0',

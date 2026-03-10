@@ -123,7 +123,6 @@ async function submitForm() {
   error.value = null;
   success.value = null;
 
-  // Client-side validation
   if (!form.username || !form.email || !form.password) {
     error.value = "All fields are required";
     return;
@@ -148,19 +147,16 @@ async function submitForm() {
 
     success.value = "Registration successful! Redirecting to login...";
 
-    // Clear form
     form.username = "";
     form.email = "";
     form.password = "";
 
-    // Redirect to login page after 2 seconds
     setTimeout(() => {
       router.push("/login");
     }, 2000);
   } catch (err: any) {
     console.error("Registration error:", err);
 
-    // Handle different error types
     if (err.statusCode === 409) {
       error.value = "An account with this email already exists";
     } else if (err.data?.statusMessage) {
@@ -175,7 +171,3 @@ async function submitForm() {
   }
 }
 </script>
-
-<style scoped>
-/* Additional custom styles if needed */
-</style>
