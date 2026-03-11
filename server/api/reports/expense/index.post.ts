@@ -113,6 +113,7 @@ export default defineEventHandler(async (event) => {
     }
   } catch (error: any) {
     console.error('Error creating expense report:', error)
+    setResponseStatus(event, 500)
     return {
       success: false,
       message: 'Failed to create expense report',

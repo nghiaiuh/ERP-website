@@ -8,6 +8,7 @@ export default defineEventHandler(async (event) => {
     const id = Number(event.context.params?.id)
 
     if (!id || isNaN(id)) {
+      setResponseStatus(event, 400)
       return {
         success: false,
         message: 'Invalid revenue report ID'
@@ -33,6 +34,7 @@ export default defineEventHandler(async (event) => {
       .limit(1)
 
     if (existingReport.length === 0) {
+      setResponseStatus(event, 404)
       return {
         success: false,
         message: 'Revenue report not found'
@@ -118,6 +120,7 @@ export default defineEventHandler(async (event) => {
     }
   } catch (error: any) {
     console.error('Error updating revenue report:', error)
+    setResponseStatus(event, 500)
     return {
       success: false,
       message: 'Failed to update revenue report',

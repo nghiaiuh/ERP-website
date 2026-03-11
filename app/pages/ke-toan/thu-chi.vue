@@ -20,11 +20,11 @@
         <div
           class="bg-black text-white rounded-[14px] p-6 border border-[rgba(0,0,0,0.1)]"
         >
-          <p class="text-[#ebeef0] text-[14px] mb-1">Thống kê thu - chi</p>
-          <p class="text-[24px] font-bold mb-1">{{ statistics.total }}</p>
-          <p class="text-[#d8d8d8] text-[12px]">
-            +{{ statistics.monthlyIncrease }} tháng này
+          <p class="text-[#ebeef0] text-[14px] mb-1">Tháng này</p>
+          <p class="text-[24px] font-bold mb-1">
+            {{ statistics.monthlyIncrease }}
           </p>
+          <p class="text-[#d8d8d8] text-[12px]">báo cáo mới trong tháng</p>
         </div>
 
         <div
@@ -167,14 +167,6 @@
               <option value="submitted">Đã nộp</option>
               <option value="approved">Đã duyệt</option>
             </select>
-
-            <button
-              @click="applyFilters"
-              class="bg-white border border-[rgba(0,0,0,0.1)] px-4 py-2 rounded-lg text-[14px] text-[#0a0a0a] flex items-center gap-2 hover:bg-gray-50 transition-colors"
-            >
-              <img src="/icon/filter.svg" alt="filter" class="w-4 h-4" />
-              Lọc
-            </button>
           </div>
         </div>
       </div>
@@ -326,6 +318,16 @@
       @edit="handleExpenseEdit"
       @delete="handleExpenseDelete"
     />
+    <!-- Toast notification -->
+    <div
+      v-if="toast"
+      :class="[
+        'fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl shadow-lg text-white text-[14px] font-medium',
+        toast.type === 'success' ? 'bg-[#16a34a]' : 'bg-[#dc2626]',
+      ]"
+    >
+      {{ toast.message }}
+    </div>
   </NavigationBar>
 </template>
 
@@ -348,8 +350,6 @@ definePageMeta({
 const tabs = useAccountingTabs();
 const {
   getCombinedReports,
-  getRevenueReports,
-  getExpenseReports,
   getRevenueReportById,
   getExpenseReportById,
   createRevenueReport,
@@ -364,20 +364,103 @@ const {
   getStatusColor,
 } = useERP();
 
+// ===== INTERFACES =====
+interface ApiReportRow {
+  id: number;
+  type: "revenue" | "expense";
+  title: string;
+  periodStart: string;
+  periodEnd: string;
+  status: string;
+  submittedAt: string | null;
+  amount: number;
+}
+
+interface ReportListItem {
+  id: number;
+  title: string;
+  status: string;
+  statusText: string;
+  period: string;
+  date: string;
+  amount: number;
+  type: "revenue" | "expense";
+}
+
+interface ReportEntry {
+  id: number;
+  soChungTu: string;
+  ngayGhiNhan: string;
+  moTa: string | null;
+  phanLoai: string | null;
+  soTien: string;
+}
+
+interface ReportDetailData {
+  id: number;
+  type: "revenue" | "expense";
+  title: string;
+  periodStart: string;
+  periodEnd: string;
+  status: string;
+  submittedAt: string | null;
+  amount: number;
+  mauSo: string | null;
+  tenDoanhNghiep: string | null;
+  maSoThue: string | null;
+  diaChi: string | null;
+  entries: ReportEntry[];
+}
+
+interface RevenueSubmitData {
+  id?: number;
+  title: string;
+  periodStart: string;
+  periodEnd: string;
+  totalRevenue?: number;
+  totalTax?: number;
+  netRevenue?: number;
+  status?: string;
+  notes?: string;
+  metadata?: Record<string, unknown>;
+  items?: unknown[];
+}
+
+interface ExpenseSubmitData {
+  id?: number;
+  title: string;
+  periodStart: string;
+  periodEnd: string;
+  totalExpense?: number;
+  totalTax?: number;
+  netExpense?: number;
+  status?: string;
+  notes?: string;
+  metadata?: Record<string, unknown>;
+  items?: unknown[];
+}
+
 // ===== 3. STATE - TRẠNG THÁI =====
 // Overlays
 const showRevenueOverlay = ref(false);
 const showExpenseOverlay = ref(false);
 const showRevenueDetailOverlay = ref(false);
 const showExpenseDetailOverlay = ref(false);
-const selectedReport = ref<any>(null);
-const revenueEditData = ref<any>(null);
-const expenseEditData = ref<any>(null);
+const selectedReport = ref<ReportDetailData | null>(null);
+const revenueEditData = ref<ReportDetailData | null>(null);
+const expenseEditData = ref<ReportDetailData | null>(null);
 
 // Bộ lọc
 const searchQuery = ref("");
 const filterType = ref("");
 const filterStatus = ref("");
+const toast = ref<{ type: "success" | "error"; message: string } | null>(null);
+const showToast = (type: "success" | "error", message: string) => {
+  toast.value = { type, message };
+  setTimeout(() => {
+    toast.value = null;
+  }, 3000);
+};
 
 // ===== 4. FETCH DATA - LẤY DỮ LIỆU =====
 const {
@@ -385,43 +468,24 @@ const {
   pending: loadingReports,
   refresh: refreshReports,
 } = await getCombinedReports({ limit: 10 });
-const { data: revenueData } = await getRevenueReports({ limit: 100 });
-const { data: expenseData } = await getExpenseReports({ limit: 100 });
 
 // ===== 5. COMPUTED - TÍNH TOÁN TỰ ĐỘNG =====
-// Thống kê
+// Thống kê — trả về từ server, không cần fetch riêng
 const statistics = computed(() => {
-  const revenueReports = (revenueData.value as any)?.data || [];
-  const expenseReports = (expenseData.value as any)?.data || [];
-  const allReports = [...revenueReports, ...expenseReports];
-  const monthStart = new Date(
-    new Date().getFullYear(),
-    new Date().getMonth(),
-    1,
-  );
-
-  const totalReports = allReports.length;
-  const submittedCount = allReports.filter(
-    (r: any) => r.status === "submitted" || r.status === "approved",
-  ).length;
-  const draftCount = allReports.filter((r: any) => r.status === "draft").length;
-  const monthReports = allReports.filter(
-    (r: any) => new Date(r.createdAt) >= monthStart,
-  ).length;
-
+  const s = (reportsData.value as any)?.statistics;
   return {
-    total: totalReports,
-    submitted: submittedCount,
-    draft: draftCount,
-    monthlyIncrease: monthReports,
+    total: s?.total ?? 0,
+    submitted: s?.submitted ?? 0,
+    draft: s?.draft ?? 0,
+    monthlyIncrease: s?.monthlyIncrease ?? 0,
   };
 });
 
 // Format báo cáo
-const recentReports = computed(() => {
-  const reports = (reportsData.value as any)?.data || [];
+const recentReports = computed((): ReportListItem[] => {
+  const reports: ApiReportRow[] = (reportsData.value as any)?.data || [];
 
-  return reports.map((report: any) => {
+  return reports.map((report): ReportListItem => {
     const periodStart = new Date(report.periodStart);
     const periodEnd = new Date(report.periodEnd);
     const submittedDate = report.submittedAt
@@ -444,24 +508,22 @@ const recentReports = computed(() => {
 });
 
 // Lọc báo cáo
-const filteredReports = computed(() => {
+const filteredReports = computed((): ReportListItem[] => {
   let filtered = recentReports.value;
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase();
     filtered = filtered.filter(
-      (report: any) =>
+      (report) =>
         report.title.toLowerCase().includes(query) ||
-        report.id.toLowerCase().includes(query),
+        report.id.toString().toLowerCase().includes(query),
     );
   }
   if (filterType.value) {
-    filtered = filtered.filter(
-      (report: any) => report.type === filterType.value,
-    );
+    filtered = filtered.filter((report) => report.type === filterType.value);
   }
   if (filterStatus.value) {
     filtered = filtered.filter(
-      (report: any) => report.status === filterStatus.value,
+      (report) => report.status === filterStatus.value,
     );
   }
   return filtered;
@@ -480,18 +542,18 @@ const createExpenseReportHandler = () => {
   showExpenseOverlay.value = true;
 };
 
-const openReportDetails = async (report: any) => {
+const openReportDetails = async (report: ReportListItem) => {
   try {
     let detailedData;
     if (report.type === "revenue") {
-      const { data } = await getRevenueReportById(report.id);
+      const { data } = await getRevenueReportById(Number(report.id));
       detailedData = (data.value as any)?.data;
       if (detailedData) {
         selectedReport.value = detailedData;
         showRevenueDetailOverlay.value = true;
       }
     } else {
-      const { data } = await getExpenseReportById(report.id);
+      const { data } = await getExpenseReportById(Number(report.id));
       detailedData = (data.value as any)?.data;
       if (detailedData) {
         selectedReport.value = detailedData;
@@ -500,7 +562,7 @@ const openReportDetails = async (report: any) => {
     }
   } catch (error) {
     console.error("Failed to fetch report details:", error);
-    selectedReport.value = report;
+    selectedReport.value = null;
     if (report.type === "revenue") {
       showRevenueDetailOverlay.value = true;
     } else {
@@ -509,13 +571,13 @@ const openReportDetails = async (report: any) => {
   }
 };
 
-const handleRevenueEdit = (reportData: any) => {
+const handleRevenueEdit = (reportData: ReportDetailData) => {
   revenueEditData.value = reportData;
   showRevenueDetailOverlay.value = false;
   showRevenueOverlay.value = true;
 };
 
-const handleExpenseEdit = (reportData: any) => {
+const handleExpenseEdit = (reportData: ReportDetailData) => {
   expenseEditData.value = reportData;
   showExpenseDetailOverlay.value = false;
   showExpenseOverlay.value = true;
@@ -524,56 +586,34 @@ const handleExpenseEdit = (reportData: any) => {
 const handleRevenueDelete = async (reportId: string) => {
   try {
     const id = Number(reportId);
-    if (isNaN(id)) {
-      console.error("Invalid report ID:", reportId);
-      return;
-    }
+    if (isNaN(id)) return;
 
-    const result = await deleteRevenueReport(id);
-
-    if (result.success) {
-      showRevenueDetailOverlay.value = false;
-      await refreshReports();
-      console.log("Báo cáo doanh thu đã được xóa thành công");
-    } else {
-      console.error("Failed to delete revenue report:", result.message);
-      alert(
-        "Không thể xóa báo cáo: " + (result.message || "Lỗi không xác định"),
-      );
-    }
+    await deleteRevenueReport(id);
+    showRevenueDetailOverlay.value = false;
+    await refreshReports();
+    showToast("success", "Đã xóa báo cáo doanh thu thành công");
   } catch (error) {
     console.error("Failed to delete revenue report:", error);
-    alert("Có lỗi xảy ra khi xóa báo cáo");
+    showToast("error", "Có lỗi xảy ra khi xóa báo cáo");
   }
 };
 
 const handleExpenseDelete = async (reportId: string) => {
   try {
     const id = Number(reportId);
-    if (isNaN(id)) {
-      console.error("Invalid report ID:", reportId);
-      return;
-    }
+    if (isNaN(id)) return;
 
-    const result = await deleteExpenseReport(id);
-
-    if (result.success) {
-      showExpenseDetailOverlay.value = false;
-      await refreshReports();
-      console.log("Báo cáo chi phí đã được xóa thành công");
-    } else {
-      console.error("Failed to delete expense report:", result.message);
-      alert(
-        "Không thể xóa báo cáo: " + (result.message || "Lỗi không xác định"),
-      );
-    }
+    await deleteExpenseReport(id);
+    showExpenseDetailOverlay.value = false;
+    await refreshReports();
+    showToast("success", "Đã xóa báo cáo chi phí thành công");
   } catch (error) {
     console.error("Failed to delete expense report:", error);
-    alert("Có lỗi xảy ra khi xóa báo cáo");
+    showToast("error", "Có lỗi xảy ra khi xóa báo cáo");
   }
 };
 
-const handleRevenueSubmit = async (data: any) => {
+const handleRevenueSubmit = async (data: RevenueSubmitData) => {
   const {
     id,
     title,
@@ -601,7 +641,7 @@ const handleRevenueSubmit = async (data: any) => {
   try {
     if (id) {
       await updateRevenueReport(id, common);
-      console.log("Revenue report updated successfully", data);
+      showToast("success", "Đã cập nhật báo cáo doanh thu thành công");
       revenueEditData.value = null;
     } else {
       await createRevenueReport({
@@ -609,16 +649,17 @@ const handleRevenueSubmit = async (data: any) => {
         reportCode: `REV-${Date.now()}`,
         ...common,
       });
-      console.log("Revenue report created successfully");
+      showToast("success", "Đã tạo báo cáo doanh thu thành công");
     }
     showRevenueOverlay.value = false;
     await refreshReports();
   } catch (error) {
     console.error("Failed to submit revenue report:", error);
+    showToast("error", "Có lỗi xảy ra khi lưu báo cáo doanh thu");
   }
 };
 
-const handleExpenseSubmit = async (data: any) => {
+const handleExpenseSubmit = async (data: ExpenseSubmitData) => {
   const {
     id,
     title,
@@ -646,7 +687,7 @@ const handleExpenseSubmit = async (data: any) => {
   try {
     if (id) {
       await updateExpenseReport(id, common);
-      console.log("Expense report updated successfully", data);
+      showToast("success", "Đã cập nhật báo cáo chi phí thành công");
       expenseEditData.value = null;
     } else {
       await createExpenseReport({
@@ -654,21 +695,13 @@ const handleExpenseSubmit = async (data: any) => {
         reportCode: `EXP-${Date.now()}`,
         ...common,
       });
-      console.log("Expense report created successfully");
+      showToast("success", "Đã tạo báo cáo chi phí thành công");
     }
     showExpenseOverlay.value = false;
     await refreshReports();
   } catch (error) {
     console.error("Failed to submit expense report:", error);
+    showToast("error", "Có lỗi xảy ra khi lưu báo cáo chi phí");
   }
-};
-
-const applyFilters = () => {
-  console.log("Filters applied:", {
-    searchQuery: searchQuery.value,
-    filterType: filterType.value,
-    filterStatus: filterStatus.value,
-    resultCount: filteredReports.value.length,
-  });
 };
 </script>

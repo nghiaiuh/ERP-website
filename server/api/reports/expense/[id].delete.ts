@@ -7,6 +7,7 @@ export default defineEventHandler(async (event) => {
     const id = Number(event.context.params?.id)
 
     if (!id || isNaN(id)) {
+      setResponseStatus(event, 400)
       return {
         success: false,
         message: 'Invalid expense report ID'
@@ -21,6 +22,7 @@ export default defineEventHandler(async (event) => {
       .limit(1)
 
     if (existingReport.length === 0) {
+      setResponseStatus(event, 404)
       return {
         success: false,
         message: 'Expense report not found'
@@ -39,6 +41,7 @@ export default defineEventHandler(async (event) => {
     }
   } catch (error) {
     console.error('Error deleting expense report:', error)
+    setResponseStatus(event, 500)
     return {
       success: false,
       message: 'Failed to delete expense report'

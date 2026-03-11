@@ -1,6 +1,6 @@
 import { db } from '../../utils/drizzle'
 import { soDoanhThu, soChiPhi, donDoanhThu, donChiPhi } from '../../db/schema'
-import { desc, count, sql } from 'drizzle-orm'
+import { desc, count, sql, gte } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -92,10 +92,33 @@ export default defineEventHandler(async (event) => {
     const revenueTotal = revenueCountResult[0]?.revenueTotal || 0
     const expenseTotal = expenseCountResult[0]?.expenseTotal || 0
 
+    // Monthly increase: records created this calendar month
+    const monthStart = new Date()
+    monthStart.setDate(1)
+    monthStart.setHours(0, 0, 0, 0)
+    const monthStartStr = monthStart.toISOString()
+
+    const revenueMonthResult = await db.select({ c: count() })
+      .from(soDoanhThu)
+      .where(gte(soDoanhThu.createdAt, monthStartStr))
+    const expenseMonthResult = await db.select({ c: count() })
+      .from(soChiPhi)
+      .where(gte(soChiPhi.createdAt, monthStartStr))
+    const monthlyIncrease = (revenueMonthResult[0]?.c || 0) + (expenseMonthResult[0]?.c || 0)
+
+    const totalCount = revenueTotal + expenseTotal
+
     return {
       success: true,
       data: combined,
-      count: revenueTotal + expenseTotal,
+      count: totalCount,
+      statistics: {
+        total: totalCount,
+        // No status column in DB — all records are 'submitted' by definition
+        submitted: totalCount,
+        draft: 0,
+        monthlyIncrease,
+      },
       message: 'Combined reports retrieved successfully'
     }
   } catch (error: any) {
