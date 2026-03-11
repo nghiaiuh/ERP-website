@@ -1,89 +1,68 @@
-# 📊 ERP Website - Hệ thống Quản lý Doanh nghiệp
+# ERP Web Application
 
-Ứng dụng quản lý kế toán cho doanh nghiệp, xây dựng với NuxtJS 3 và PostgreSQL.
+A business management web app built with Nuxt.js 3, Tailwind CSS, Drizzle ORM, and PostgreSQL. It covers core ERP modules including accounting (invoices, revenue/expense reports, debts, tax), inventory management, and marketing analytics.
 
----
+## Setup
 
-## 🚀 Bắt đầu
-
-### Yêu cầu hệ thống
-
-- **Node.js**: v18 trở lên
-- **npm** hoặc **pnpm**
-- **PostgreSQL**: v14 trở lên
-
-### Cài đặt
-
-1. **Clone project về máy:**
-
-```bash
-git clone <url-repository>
-cd nuxt-app
-```
-
-2. **Cài đặt dependencies:**
+1. Install dependencies:
 
 ```bash
 npm install
 ```
 
-3. **Cấu hình database:**
-   - Tạo file `.env` trong thư mục gốc
-   - Thêm connection string PostgreSQL:
+2. Create a `.env` file in the project root and add your database connection string:
 
 ```env
 DATABASE_URL="postgresql://username:password@localhost:5432/database_name"
+JWT_SECRET="your_jwt_secret"
 ```
 
-4. **Chạy migrations:**
+3. Push the database schema:
 
 ```bash
 npm run db:push
 ```
 
----
+## Running the App
 
-## 💻 Sử dụng Project
-
-### Chạy môi trường Development
+**Development:**
 
 ```bash
 npm run dev
 ```
 
-Mở trình duyệt tại: `http://localhost:3000`
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### Build cho Production
+**Production:**
 
 ```bash
 npm run build
 npm run preview
 ```
 
-### Các lệnh phổ biến
+## Available Scripts
 
-| Lệnh                | Mô tả                   |
-| ------------------- | ----------------------- |
-| `npm run dev`       | Chạy dev server         |
-| `npm run build`     | Build production        |
-| `npm run generate`  | Generate static site    |
-| `npm run db:push`   | Đẩy schema lên database |
-| `npm run db:studio` | Mở Drizzle Studio       |
+| Command             | Description                      |
+| ------------------- | -------------------------------- |
+| `npm run dev`       | Start development server         |
+| `npm run build`     | Build for production             |
+| `npm run generate`  | Generate static site             |
+| `npm run preview`   | Preview production build         |
+| `npm run db:push`   | Push schema changes to database  |
+| `npm run db:studio` | Open Drizzle Studio (DB browser) |
 
----
-
-## 📁 Cấu trúc Project
+## Project Structure
 
 ```
 nuxt-app/
 ├── app/
-│   ├── components/       # Vue components
-│   ├── composables/      # Composable functions
-│   ├── pages/           # Route pages
-│   └── layouts/         # Layout templates
+│   ├── components/     # Reusable Vue components
+│   ├── composables/    # Shared composable logic
+│   ├── pages/          # Application routes
+│   └── layouts/        # Page layout templates
 ├── server/
-│   ├── api/             # API endpoints
-│   ├── db/              # Database schema
-│   └── utils/           # Server utilities
-└── public/              # Static files
+│   ├── api/            # REST API endpoints
+│   ├── db/             # Database schema (Drizzle ORM)
+│   └── utils/          # Server-side utilities
+└── public/             # Static assets
 ```
