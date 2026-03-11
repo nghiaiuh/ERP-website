@@ -1,10 +1,19 @@
 import { db } from '../../../utils/drizzle'
 import { soDoanhThu, donDoanhThu, doanhNghiep } from '../../../db/schema'
 import { eq, and, gte, lte } from 'drizzle-orm'
-
+import { validateReportBody } from '../../../utils/validation'
 export default defineEventHandler(async (event) => {
   try {
     const body = await readBody(event)
+
+    const validationErrors = validateReportBody(body, 'totalRevenue')
+    if (validationErrors.length > 0) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Dữ liệu không hợp lệ',
+        data: validationErrors
+      })
+    }
     const { periodStart, periodEnd, items, metadata, totalRevenue } = body
 
     // Step 1: Find or create doanh_nghiep

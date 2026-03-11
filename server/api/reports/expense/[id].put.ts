@@ -1,6 +1,7 @@
 import { db } from '../../../utils/drizzle'
 import { soChiPhi, donChiPhi, doanhNghiep } from '../../../db/schema'
 import { eq } from 'drizzle-orm'
+import { validateReportBody } from '../../../utils/validation'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -14,6 +15,14 @@ export default defineEventHandler(async (event) => {
     }
 
     const body = await readBody(event)
+    const validationErrors = validateReportBody(body, 'totalExpense')
+    if (validationErrors.length > 0) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Dữ liệu không hợp lệ',
+        data: validationErrors
+      })
+    }
     const { periodStart, periodEnd, items, metadata, totalExpense } = body
 
     // Step 1: Check if expense report exists
