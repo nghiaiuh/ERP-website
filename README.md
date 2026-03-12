@@ -56,9 +56,11 @@
 ## Giới thiệu dự án
 
 Hệ thống ERP (Enterprise Resource Planning) xây dựng trên nền tảng **Nuxt 4 + Vue 3**, phục vụ quản lý kế toán và tài chính cho doanh nghiệp.
+  <br/>
   <a href="#">
     <img src="public/img/introduce.png" alt="introduce">
   </a>
+  <br/>
 **Các module chính:**
 
 - **Hóa đơn** — Quản lý hóa đơn đầu vào/đầu ra, tra cứu theo khách hàng, nhà cung cấp
