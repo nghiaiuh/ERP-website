@@ -15,7 +15,7 @@
 <br />
 <div align="center">
   <a href="#">
-    <img src="public/icon/favicon.ico" alt="Logo" width="80" height="80">
+    <img src="public/img/logo.png" alt="Logo" width="80" height="80">
   </a>
 
   <h3 align="center">ERP Web Application</h3>
@@ -276,22 +276,6 @@ nuxt-app/
 ## Giấy phép
 
 Phân phối theo giấy phép MIT. Xem `LICENSE` để biết thêm chi tiết.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
----
-
-<!-- CONTACT -->
-
-## Liên hệ
-
-Dự án thuộc hệ thống quản lý cho **Cơ sở Điêu Khắc Trang Trí Vĩnh Tiến**, xã Bình Minh, tỉnh Đồng Nai.
-
-Tài liệu bổ sung:
-
-- [AUTH_README.md](AUTH_README.md) — Chi tiết hệ thống xác thực
-- [DATABASE_USAGE.md](DATABASE_USAGE.md) — Hướng dẫn sử dụng database
-- [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md) — Tổng quan kiến trúc dự án
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
