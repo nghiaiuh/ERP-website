@@ -22,3 +22,6 @@ logs
 .env
 .env.*
 !.env.example
+
+# Internal project documentation
+PROJECT_OVERVIEW.md
