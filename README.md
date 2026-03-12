@@ -1,5 +1,3 @@
-<!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
-
 <a id="readme-top"></a>
 
 <!-- PROJECT SHIELDS -->
@@ -22,14 +20,6 @@
   <p align="center">
     Hệ thống quản lý doanh nghiệp toàn diện — kế toán, hóa đơn, công nợ & thuế
     <br />
-    <a href="PROJECT_OVERVIEW.md"><strong>Xem tài liệu dự án »</strong></a>
-    <br />
-    <br />
-    <a href="http://localhost:3000">Chạy thử</a>
-    &middot;
-    <a href="#">Báo lỗi</a>
-    &middot;
-    <a href="#">Yêu cầu tính năng</a>
   </p>
 </div>
 
@@ -56,8 +46,6 @@
     <li><a href="#cấu-trúc-dự-án">Cấu trúc dự án</a></li>
     <li><a href="#api-endpoints">API Endpoints</a></li>
     <li><a href="#lộ-trình-phát-triển">Lộ trình phát triển</a></li>
-    <li><a href="#giấy-phép">Giấy phép</a></li>
-    <li><a href="#liên-hệ">Liên hệ</a></li>
   </ol>
 </details>
 
@@ -256,25 +244,15 @@ nuxt-app/
 ## Lộ trình phát triển
 
 - [x] Xác thực người dùng (JWT + bcrypt)
-- [x] Quản lý hóa đơn
 - [x] Báo cáo thu chi (CRUD đầy đủ)
+- [x] Quản lý hóa đơn
 - [x] Quản lý công nợ
-- [x] Phân hệ thuế
+- [ ] Phân hệ thuế
 - [ ] Quản lý kho hàng
 - [ ] Phân hệ marketing & phân tích
 - [ ] Xuất báo cáo PDF / Excel
 - [ ] Phân quyền người dùng (RBAC)
 - [ ] Thông báo hạn thanh toán công nợ
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
----
-
-<!-- LICENSE -->
-
-## Giấy phép
-
-Phân phối theo giấy phép MIT. Xem `LICENSE` để biết thêm chi tiết.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
