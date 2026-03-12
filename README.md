@@ -9,7 +9,6 @@
 [![TypeScript][TypeScript-shield]][TypeScript-url]
 [![Tailwind][Tailwind-shield]][Tailwind-url]
 [![PostgreSQL][PostgreSQL-shield]][PostgreSQL-url]
-[![License: MIT][License-shield]][License-url]
 
 <!-- PROJECT LOGO -->
 <br />
