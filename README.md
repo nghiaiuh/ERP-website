@@ -55,8 +55,10 @@
 
 ## Giới thiệu dự án
 
-Hệ thống ERP (Enterprise Resource Planning) xây dựng trên nền tảng **Nuxt 4 + Vue 3**, phục vụ quản lý kế toán và tài chính cho doanh nghiệp vừa và nhỏ tại Việt Nam. Tuân thủ **Thông tư 152/2025/TT-BTC** của Bộ Tài chính (mẫu sổ S1a-HKD, S2c-HKD).
-
+Hệ thống ERP (Enterprise Resource Planning) xây dựng trên nền tảng **Nuxt 4 + Vue 3**, phục vụ quản lý kế toán và tài chính cho doanh nghiệp.
+  <a href="#">
+    <img src="public/img/introduce.png" alt="introduce">
+  </a>
 **Các module chính:**
 
 - **Hóa đơn** — Quản lý hóa đơn đầu vào/đầu ra, tra cứu theo khách hàng, nhà cung cấp
@@ -270,5 +272,3 @@ nuxt-app/
 [Tailwind-url]: https://tailwindcss.com
 [PostgreSQL-shield]: https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white
 [PostgreSQL-url]: https://www.postgresql.org
-[License-shield]: https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge
-[License-url]: LICENSE
