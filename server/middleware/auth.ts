@@ -10,21 +10,24 @@ Flow:
 import jwt from 'jsonwebtoken'
 
 export default defineEventHandler(async (event) => {
-  // Skip auth for auth endpoints
+  // Only guard API routes. Do not block page/html/static requests.
   const url = getRequestURL(event)
+  if (!url.pathname.startsWith('/api/')) {
+    return
+  }
+
+  // Skip auth for auth endpoints
   if (url.pathname.startsWith('/api/auth/')) {
     return
   }
   
-  // Accept token from Authorization header or jwt_toker cookie
+  // Accept token from Authorization header or jwt_token cookie
   const authHeader = getHeader(event, 'authorization')
   let token: string | undefined
   if (authHeader?.startsWith('Bearer ')) {
     token = authHeader.substring(7)
   } else {
-    const cookieHeader = getHeader(event, 'cookie') ?? ''
-    const match = cookieHeader.match(/(?:^|;\s*)jwt_token=([^;]+)/)
-    token = match?.[1]
+    token = getCookie(event, 'jwt_token')
   }
   
   if(!token) {

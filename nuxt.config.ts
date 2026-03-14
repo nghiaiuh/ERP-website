@@ -14,8 +14,13 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    jwtSecret: process.env.JWT_SECRET
+    jwtSecret: process.env.JWT_SECRET,
+    dbProvider: process.env.DB_PROVIDER || "drizzle",
+    public: {
+      supabaseUrl: process.env.SUPABASE_URL,
+      supabaseAnonKey: process.env.SUPABASE_KEY
+    }
   },
 
-  modules: ["@nuxt/image"]
+  modules: ["@nuxt/image"],
 })

@@ -95,9 +95,27 @@
 </template>
 
 <script lang="ts" setup>
-const { data: users, pending, error } = await useFetch("/api/users");
+import { createClient } from "@supabase/supabase-js";
 
-const usersData = computed(() => (users.value as any)?.data || []);
+type AboutUser = {
+  id: number;
+  email: string;
+  username: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+};
+
+const config = useRuntimeConfig();
+const users = ref<AboutUser[]>([]);
+const pending = ref(true);
+const error = ref<Error | null>(null);
+
+const supabase = createClient(
+  config.public.supabaseUrl,
+  config.public.supabaseAnonKey,
+);
+
+const usersData = computed(() => users.value);
 
 const formatDate = (date: string | null) => {
   if (!date) return "-";
@@ -109,4 +127,27 @@ const formatDate = (date: string | null) => {
     minute: "2-digit",
   });
 };
+
+onMounted(async () => {
+  const { data, error: supabaseError } = await supabase
+    .from("users")
+    .select("id, email, username, created_at, updated_at")
+    .order("id", { ascending: true });
+
+  if (supabaseError) {
+    error.value = new Error(supabaseError.message);
+    console.error("Lỗi khi lấy dữ liệu từ Supabase:", supabaseError);
+  } else {
+    users.value = (data ?? []).map((user) => ({
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      createdAt: user.created_at,
+      updatedAt: user.updated_at,
+    }));
+    console.log("Dữ liệu users từ Supabase:", data);
+  }
+
+  pending.value = false;
+});
 </script>
