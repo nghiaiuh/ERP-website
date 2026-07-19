@@ -73,88 +73,66 @@ Không phát hiện implementation cho Telegram, upload, OCR/AI, review, Redis/B
 
 ```mermaid
 flowchart LR
-    subgraph Channels[Channels]
-        WEB[Nuxt Web UI]
-        TG[Telegram User]
-        EXT[External Systems]
+    subgraph CHANNELS["Channels"]
+        WEB["Nuxt Web UI"]
+        TG["Telegram User"]
+        EXT["External Systems"]
     end
 
-    subgraph WebApp[Nuxt Web Application - Modular Monolith]
-        BFF[Nitro BFF Controllers]
-        IAM[IAM and Tenant Context]
-        MSG[Messaging]
-        SUB[Submission Inbox]
-        DOC[Document Metadata]
-        REVIEW[Human Review]
-        BDOC[Business Documents]
-        MASTER[Master Data]
-        POST[Posting Engine]
-        GL[General Ledger]
-        PAY[Payment and Reconciliation]
-        REPORT[Reporting Read Models]
-        AUDIT[Append-only Audit]
-        OUTBOX[Transactional Outbox]
-        AIGW[AI Gateway]
-        INT[Integration Adapter]
+    subgraph APP["Nuxt Application — Modular Monolith"]
+        ACCESS["Channel & Access<br/>BFF · Telegram Adapter<br/>IAM · Messaging"]
+
+        INTAKE["AI Intake & Human Review<br/>Submission · Documents<br/>Extraction · Confirm/Edit/Reject"]
+
+        ACCOUNTING["Accounting Core<br/>Master Data · Business Documents<br/>Payments · Period Control<br/>Posting Engine · General Ledger"]
+
+        INSIGHT["Reporting & Governance<br/>Reports · Audit Trail"]
+
+        PLATFORM["Platform Services<br/>Transactional Outbox<br/>AI Gateway · Integrations"]
     end
 
-    subgraph Async[Worker Application]
-        PUB[Outbox Publisher]
-        MEDIA[Media Processor]
-        AIW[AI Extraction Processor]
-        NOTIFY[Telegram Notification Processor]
-        EXPORT[Report Export Processor]
+    subgraph WORKER["Worker Application"]
+        PROCESSORS["Async Processors<br/>Media · AI Extraction<br/>Notifications · Reports · Integrations"]
     end
 
-    subgraph Infra[Infrastructure]
-        PG[(PostgreSQL)]
-        REDIS[(Redis + BullMQ)]
-        OBJ[(S3/MinIO Object Storage)]
-        OLLAMA[Ollama Local]
-        N8N[n8n]
-        TAPI[Telegram Bot API]
+    subgraph INFRA["Infrastructure"]
+        PG[("PostgreSQL<br/>Business Source of Truth")]
+        QUEUE[("Redis + BullMQ<br/>Queue & Retry State")]
+        STORAGE[("S3 / MinIO<br/>Images · PDFs · Exports")]
+        AI["Ollama + OCR/Vision"]
+        N8N["n8n"]
+        TAPI["Telegram Bot API"]
     end
 
-    WEB --> BFF
-    TG --> TAPI --> BFF
-    BFF --> IAM
-    BFF --> MSG --> SUB
-    SUB --> DOC
-    DOC --> OBJ
-    SUB --> OUTBOX
-    REVIEW --> BDOC --> POST --> GL
-    BDOC --> PAY
-    MASTER --> BDOC
-    GL --> REPORT
-    PAY --> REPORT
-    BFF --> AIGW
-    BFF --> INT --> N8N --> EXT
+    WEB --> ACCESS
+    TG <--> TAPI
+    TAPI --> ACCESS
 
-    IAM --> PG
-    MSG --> PG
-    SUB --> PG
-    DOC --> PG
-    REVIEW --> PG
-    BDOC --> PG
-    POST --> PG
-    GL --> PG
-    PAY --> PG
-    REPORT --> PG
-    AUDIT --> PG
-    OUTBOX --> PG
+    ACCESS --> INTAKE
+    ACCESS --> ACCOUNTING
+    ACCESS --> INSIGHT
 
-    PUB --> PG
-    PUB --> REDIS
-    REDIS --> MEDIA
-    REDIS --> AIW
-    REDIS --> NOTIFY
-    REDIS --> EXPORT
-    MEDIA --> OBJ
-    AIW --> AIGW --> OLLAMA
-    AIW --> PG
-    NOTIFY --> TAPI
-    NOTIFY --> PG
-    EXPORT --> OBJ
+    INTAKE -- "Confirmed data" --> ACCOUNTING
+    ACCOUNTING --> INSIGHT
+
+    INTAKE --> PLATFORM
+    ACCOUNTING --> PLATFORM
+
+    PLATFORM --> QUEUE
+    QUEUE --> PROCESSORS
+
+    PROCESSORS --> AI
+    PROCESSORS --> STORAGE
+    PROCESSORS --> TAPI
+    PROCESSORS --> N8N
+
+    N8N --> EXT
+
+    ACCESS --> PG
+    INTAKE --> PG
+    ACCOUNTING --> PG
+    INSIGHT --> PG
+    PLATFORM --> PG
 ```
 
 ### 4.2 Luồng Telegram đến Ledger
