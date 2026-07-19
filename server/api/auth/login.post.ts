@@ -31,6 +31,7 @@ export default defineEventHandler(async (event) => {
     const dbProvider = String(config.dbProvider || 'drizzle').toLowerCase()
     let user: AuthUser | null = null
 
+    //Kết nối tới supabase
     if (dbProvider === 'supabase') {
       const { data, error: supabaseError } = await supabase
         .from('users')
@@ -55,7 +56,9 @@ export default defineEventHandler(async (event) => {
           createdAt: data.created_at
         }
       }
-    } else {
+    } 
+    //Kết nối tới db nội bộ (drizzle(connection pool (cải tiến bằng redis)) -> schema)
+    else {
       const db = useDrizzle()
       const userResult = await db
         .select()

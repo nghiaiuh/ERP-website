@@ -4,7 +4,6 @@ import * as schema from '../db/schema'
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-
 })
 
 pool.on('error', (err) => {

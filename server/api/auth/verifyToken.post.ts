@@ -22,16 +22,17 @@ export default defineEventHandler(async (event) => {
         let user: { id: number; email: string; username: string | null; createdAt: string | null } | null = null
 
         if (dbProvider === 'supabase') {
+            //Truy vẫn dữ liệu từ db
             const { data, error: supabaseError } = await supabase
                 .from('users')
                 .select('id, email, username, created_at')
                 .eq('id', decoded.userId)
                 .maybeSingle()
-
+            //Lỗi
             if (supabaseError) {
                 throw createError({ statusCode: 503, message: `Database unavailable: ${supabaseError.message}` })
             }
-
+            //Thành công
             if (data) {
                 user = {
                     id: data.id,
