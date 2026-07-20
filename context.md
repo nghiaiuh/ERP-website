@@ -139,3 +139,18 @@ Detailed architecture diagrams, module ownership, queue contracts, task IDs, tes
 - Keep controllers thin and business rules in application/domain layers.
 - Add database unique constraints for idempotency, not code checks alone.
 - Update this context whenever architecture, source-of-truth or phase status changes.
+
+## Sprint 0 implementation status
+
+- Quality scripts now exist: `lint`, `typecheck`, `test`, `test:coverage`, `test:watch`, `ci`.
+- Drizzle migration scripts now exist: `db:generate`, `db:migrate`.
+- API error responses have a shared contract in `server/utils/api-response.ts`.
+- Request IDs are attached by `server/middleware/request-id.ts` and propagated through `x-request-id`.
+- Shared validation helpers cover report bodies, route params and pagination query.
+- Revenue API has a characterization test for the validation-error contract.
+- PostgreSQL integration-test fixture exists and runs only when `TEST_DATABASE_URL` is configured.
+- Supabase connectivity has a utility, unit tests and `GET /api/auth/supabase-connect`.
+- `P0-04` module refactor sample remains pending; Reporting write routes have not yet been split into controller/use case/repository.
+- Supabase manual-safe baseline now exists in `drizzle/0000_shiny_human_cannonball.sql`.
+- New foundation tables are represented in `server/db/schema.ts`: IAM/tenants, Telegram messaging, submissions, documents, AI extraction, review, business documents, ledger, payments, audit, outbox and integrations.
+- The generated SQL includes legacy ERP tables and modular foundation tables; it is safe to rerun manually after partial Supabase SQL Editor failures because tables, indexes and FK blocks are idempotent.

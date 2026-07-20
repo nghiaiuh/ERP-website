@@ -594,6 +594,60 @@ npm run dev
 npm run build
 npm run generate
 npm run preview
+npm run lint
+npm run typecheck
+npm run test
+npm run ci
+npm run db:generate
+npm run db:migrate
 ```
+
+## 14. Sprint 0 implementation status
+
+Implemented baseline tasks:
+
+- `ERP-001`: Added ESLint, Nuxt typecheck and Vitest scripts.
+- `ERP-002`: Added a PostgreSQL integration-test fixture gated by `TEST_DATABASE_URL`.
+- `ERP-003`: Added Drizzle migration scripts `db:generate` and `db:migrate`.
+- `ERP-004`: Added shared API error contract; Revenue validation errors now return HTTP 400 instead of being masked as HTTP 500.
+- `ERP-005`: Added request ID middleware and `x-request-id` response propagation.
+- `ERP-006`: Added shared body, route param and pagination query validators.
+- `ERP-007`: Added Revenue API characterization test for validation contract.
+- `ERP-008`: Added GitHub Actions quality gate for install, lint, typecheck, test and build.
+- `ERP-009`: Added Supabase connectivity helper, test and `GET /api/auth/supabase-connect`.
+
+Notes:
+
+- `npm run test` does not require a live PostgreSQL database by default.
+- PostgreSQL integration tests run only when `TEST_DATABASE_URL` is configured.
+- Supabase connect can be checked with `GET /api/auth/supabase-connect`; it returns `503` when Supabase env vars are missing or the connection fails.
+- If `nuxt prepare`, `typecheck` or `build` fails with `EPERM` inside `.nuxt`, stop any running Nuxt/Node watcher and rerun `npm run postinstall`.
+
+## 15. Supabase manual-safe baseline
+
+The Supabase-ready manual-safe baseline is generated in:
+
+```bash
+drizzle/0000_shiny_human_cannonball.sql
+```
+
+It can be pasted into Supabase SQL Editor for a fresh or partially-created development database. It uses `CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS` and idempotent foreign-key blocks so rerunning after a partial failure is safer.
+
+It creates the legacy ERP tables plus the modular foundation tables for:
+
+- IAM and tenants: `tenants`, `user_tenant_memberships`, `roles`, `telegram_identities`
+- Messaging and intake: `conversations`, `inbound_messages`, `outbound_messages`, `submissions`, `submission_messages`, `submission_documents`
+- Evidence and AI: `documents`, `extraction_runs`, `extraction_results`, `extraction_fields`
+- Human review: `review_tasks`, `review_changes`
+- Accounting core: `business_documents`, `business_document_lines`, `chart_of_accounts`, `accounting_periods`, `journal_entries`, `journal_lines`, `payments`, `payment_allocations`
+- Platform: `audit_events`, `outbox_events`, `integration_runs`
+
+For normal CLI migration, set `DATABASE_URL` to the Supabase PostgreSQL connection string and run:
+
+```bash
+npm run db:migrate
+```
+
+If you already started manually and hit a missing-table error, rerun the manual-safe SQL file above; it will create missing tables such as `public.users` before applying the foreign keys.
 
 Queue, storage, Ollama, n8n, migration và test scripts sẽ được thêm ở các phase tương ứng; README không coi các thành phần đó là đã triển khai.
