@@ -4,9 +4,17 @@
   "private": true,
   "scripts": {
     "build": "nuxt build",
+    "ci": "npm run lint && npm run typecheck && npm run test && npm run build",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
     "dev": "nuxt dev",
+    "lint": "eslint .",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest",
+    "typecheck": "nuxt typecheck",
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
@@ -23,10 +31,15 @@
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
+    "@nuxt/eslint": "^1.16.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.3.5",
     "@types/pg": "^8.16.0",
-    "drizzle-kit": "^0.31.8"
+    "@vitest/coverage-v8": "^4.1.10",
+    "drizzle-kit": "^0.31.8",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10",
+    "vue-tsc": "^3.3.7"
   }
 }
