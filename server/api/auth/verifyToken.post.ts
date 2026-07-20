@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
 import { eq } from 'drizzle-orm'
 import { useDrizzle, users } from '~~/server/utils/drizzle'
-import { supabase } from '../supabase-client'
+import { createSupabaseAdminClientFromEnv } from '../../utils/supabase'
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event)
@@ -22,6 +22,7 @@ export default defineEventHandler(async (event) => {
         let user: { id: number; email: string; username: string | null; createdAt: string | null } | null = null
 
         if (dbProvider === 'supabase') {
+            const supabase = createSupabaseAdminClientFromEnv()
             //Truy vẫn dữ liệu từ db
             const { data, error: supabaseError } = await supabase
                 .from('users')
@@ -68,16 +69,24 @@ export default defineEventHandler(async (event) => {
             user
         }
     } catch (err: any) {
-        console.error('Token verification error:', err)
-
         // Keep token errors as 401, but surface DB connectivity issues correctly.
         if (err?.code === 'ETIMEDOUT' || err?.cause?.code === 'ETIMEDOUT') {
+            console.error('Token verification error:', err)
             throw createError({ statusCode: 503, message: 'Database unavailable' })
+        }
+
+        if (err?.statusCode) {
+            if (err.statusCode >= 500) {
+                console.error('Token verification error:', err)
+            }
+            throw err
         }
 
         if (err?.name === 'JsonWebTokenError' || err?.name === 'TokenExpiredError') {
             throw createError({ statusCode: 401, message: 'Invalid token' })
         }
+
+        console.error('Token verification error:', err)
 
         throw createError({ statusCode: 500, message: 'Token verification failed' })
     }

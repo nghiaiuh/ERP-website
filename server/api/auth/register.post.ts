@@ -1,10 +1,9 @@
 import { eq } from 'drizzle-orm'
 import { useDrizzle, users } from '../../utils/drizzle'
 import bcrypt from 'bcryptjs'
+import { createSupabaseAdminClientFromEnv } from '../../utils/supabase'
 
 export default defineEventHandler(async (event) => {
-  const db = useDrizzle()
-  
   try {
     const body = await readBody(event)
     const { email, password, name } = body
@@ -31,36 +30,89 @@ export default defineEventHandler(async (event) => {
       })
     }
     
-    const existingUser = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, email))
-      .limit(1)
-    
-    if (existingUser.length > 0) {
-      throw createError({
-        statusCode: 409,
-        statusMessage: 'User with this email already exists'
-      })
-    }
-    
     // Hash password
     const saltRounds = 10
     const hashedPassword = await bcrypt.hash(password, saltRounds)
-    
-    const newUser = await db
-      .insert(users)
-      .values({
-        email,
-        password: hashedPassword,
-        username: name || null
-      })
-      .returning({
-        id: users.id,
-        email: users.email,
-        username: users.username,
-        createdAt: users.createdAt
-      })
+
+    const config = useRuntimeConfig()
+    const dbProvider = String(config.dbProvider || 'drizzle').toLowerCase()
+    let newUser: Array<{ id: number; email: string; username: string | null; createdAt: string | null }>
+
+    if (dbProvider === 'supabase') {
+      const supabase = createSupabaseAdminClientFromEnv()
+      const { data: existingUser, error: lookupError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', email)
+        .limit(1)
+        .maybeSingle()
+
+      if (lookupError) {
+        throw createError({
+          statusCode: 503,
+          statusMessage: `Database unavailable: ${lookupError.message}`
+        })
+      }
+
+      if (existingUser) {
+        throw createError({
+          statusCode: 409,
+          statusMessage: 'User with this email already exists'
+        })
+      }
+
+      const { data, error: insertError } = await supabase
+        .from('users')
+        .insert({
+          email,
+          password: hashedPassword,
+          username: name || null
+        })
+        .select('id, email, username, created_at')
+
+      if (insertError) {
+        throw createError({
+          statusCode: 503,
+          statusMessage: `Database unavailable: ${insertError.message}`
+        })
+      }
+
+      newUser = (data ?? []).map((user) => ({
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        createdAt: user.created_at
+      }))
+    } else {
+      const db = useDrizzle()
+
+      const existingUser = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1)
+
+      if (existingUser.length > 0) {
+        throw createError({
+          statusCode: 409,
+          statusMessage: 'User with this email already exists'
+        })
+      }
+
+      newUser = await db
+        .insert(users)
+        .values({
+          email,
+          password: hashedPassword,
+          username: name || null
+        })
+        .returning({
+          id: users.id,
+          email: users.email,
+          username: users.username,
+          createdAt: users.createdAt
+        })
+    }
     
     return {
       success: true,
@@ -69,12 +121,15 @@ export default defineEventHandler(async (event) => {
     }
     
   } catch (error: any) {
-    console.error('Registration error:', error)
-    
     if (error.statusCode) {
+      if (error.statusCode >= 500) {
+        console.error('Registration error:', error)
+      }
       throw error
     }
     
+    console.error('Registration error:', error)
+
     throw createError({
       statusCode: 500,
       statusMessage: 'Internal server error during registration'

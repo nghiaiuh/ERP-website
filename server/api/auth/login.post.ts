@@ -2,7 +2,7 @@ import { eq, or } from 'drizzle-orm'
 import { useDrizzle, users } from '../../utils/drizzle'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { supabase } from '../supabase-client'
+import { createSupabaseAdminClientFromEnv } from '../../utils/supabase'
 
 type AuthUser = {
   id: number
@@ -25,14 +25,13 @@ export default defineEventHandler(async (event) => {
       })
     }
     
-    console.log('Login attempt:', identifier)
-
     const config = useRuntimeConfig()
     const dbProvider = String(config.dbProvider || 'drizzle').toLowerCase()
     let user: AuthUser | null = null
 
     //Kết nối tới supabase
     if (dbProvider === 'supabase') {
+      const supabase = createSupabaseAdminClientFromEnv()
       const { data, error: supabaseError } = await supabase
         .from('users')
         .select('id, email, username, password, created_at')
@@ -82,8 +81,6 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    console.log('User found:', !!user)
-
     if (!user) {
       throw createError({
         statusCode: 401,
@@ -124,12 +121,15 @@ export default defineEventHandler(async (event) => {
     }
     
   } catch (error: any) {
-    console.error('Login error:', error)
-    
     if (error.statusCode) {
+      if (error.statusCode >= 500) {
+        console.error('Login error:', error)
+      }
       throw error
     }
     
+    console.error('Login error:', error)
+
     throw createError({
       statusCode: 500,
       statusMessage: 'Internal server error during login'
