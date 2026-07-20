@@ -5,21 +5,65 @@
 .nitro
 .cache
 dist
-.claude
+
 # Node dependencies
 node_modules
 
 # Logs
 logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
 # Misc
 .DS_Store
 .fleet
 .idea
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.example.json
 
 # Local env files
 .env
 .env.*
 !.env.example
 
+# Local agent/tooling state and secrets
+.claude
+.codex/attachments/
+.codex/tmp/
+.agents/tmp/
+
+# Local database dumps, manual SQL snapshots and backups
+*.bak
+*.backup
+*.dump
+*.sql.bak
+*.snapshot.sql
+*.snapshot.*.sql
+*_snapshot.sql
+*_dump.sql
+local-*.sql
+supabase-*.sql
+drizzle/*.bak
+drizzle/*.sql.bak
+drizzle/meta.bak/
+
+# Keep official Drizzle migrations and metadata tracked.
+!drizzle/*.sql
+!drizzle/meta/
+!drizzle/meta/*.json
+
+# Test and coverage outputs
+coverage
+.coverage
+test-results
+playwright-report
+
+# OS/editor temp files
+Thumbs.db
+*.swp
+*.swo
+*~
