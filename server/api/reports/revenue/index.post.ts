@@ -1,34 +1,30 @@
+import { and, eq } from 'drizzle-orm'
+import { doanhNghiep, donDoanhThu, soDoanhThu } from '../../../db/schema'
 import { db } from '../../../utils/drizzle'
-import { soDoanhThu, donDoanhThu, doanhNghiep } from '../../../db/schema'
-import { eq, and, gte, lte } from 'drizzle-orm'
+import { toErrorResponse, throwValidationError } from '../../../utils/api-response'
 import { validateReportBody } from '../../../utils/validation'
+
 export default defineEventHandler(async (event) => {
   try {
     const body = await readBody(event)
 
     const validationErrors = validateReportBody(body, 'totalRevenue')
     if (validationErrors.length > 0) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Dữ liệu không hợp lệ',
-        data: validationErrors
-      })
+      throwValidationError('Invalid revenue report payload', validationErrors)
     }
-    const { periodStart, periodEnd, items, metadata, totalRevenue } = body
 
-    // Step 1: Find or create doanh_nghiep
+    const { periodStart, periodEnd, items, metadata, totalRevenue } = body
     let doanhNghiepId: number | null = null
-    
+
     if (metadata?.taxCode) {
       const existingBusiness = await db.select()
         .from(doanhNghiep)
         .where(eq(doanhNghiep.maSoThue, metadata.taxCode))
         .limit(1)
-      
+
       if (existingBusiness.length > 0) {
         doanhNghiepId = existingBusiness[0]!.id
-        
-        // Update business info if changed
+
         await db.update(doanhNghiep)
           .set({
             tenDoanhNghiep: metadata.businessName || existingBusiness[0]!.tenDoanhNghiep,
@@ -36,7 +32,6 @@ export default defineEventHandler(async (event) => {
           })
           .where(eq(doanhNghiep.id, doanhNghiepId))
       } else {
-        // Create new business
         const newBusiness = await db.insert(doanhNghiep)
           .values({
             tenDoanhNghiep: metadata.businessName,
@@ -44,36 +39,32 @@ export default defineEventHandler(async (event) => {
             diaChi: metadata.address,
           })
           .returning()
-        
+
         doanhNghiepId = newBusiness[0]!.id
       }
     }
 
-    // Step 2: Find or create revenue book (so_doanh_thu) for this period
-    let revenueBook = await db.select()
+    const revenueBook = await db.select()
       .from(soDoanhThu)
-      .where(
-        and(
-          eq(soDoanhThu.ngayBatDau, periodStart),
-          eq(soDoanhThu.ngayKetThuc, periodEnd)
-        )
-      )
+      .where(and(
+        eq(soDoanhThu.ngayBatDau, periodStart),
+        eq(soDoanhThu.ngayKetThuc, periodEnd),
+      ))
       .limit(1)
 
     let revenueBookId: number
 
     if (revenueBook.length === 0) {
-      // Create new revenue book with doanhNghiepId
       const newBooks = await db.insert(soDoanhThu)
         .values({
-          doanhNghiepId: doanhNghiepId,
+          doanhNghiepId,
           mauSo: metadata?.mauSo,
           ngayBatDau: periodStart,
           ngayKetThuc: periodEnd,
           tongTien: totalRevenue?.toString() || '0',
         })
         .returning()
-      
+
       if (!newBooks || newBooks.length === 0) {
         throw new Error('Failed to create revenue book')
       }
@@ -82,14 +73,13 @@ export default defineEventHandler(async (event) => {
       revenueBookId = revenueBook[0]!.id
     }
 
-    // Step 2: Insert revenue entries (don_doanh_thu)
     const insertedEntries = []
-    
+
     if (items && items.length > 0) {
       for (const item of items) {
         const [entry] = await db.insert(donDoanhThu)
           .values({
-            revenueBookId: revenueBookId,
+            revenueBookId,
             soChungTu: item.documentNumber || `DOC-${Date.now()}`,
             ngayGhiNhan: item.documentDate || periodStart,
             moTa: item.itemName || item.description,
@@ -97,7 +87,7 @@ export default defineEventHandler(async (event) => {
             soTien: (item.amount || item.totalAmount || 0).toString(),
           })
           .returning()
-        
+
         insertedEntries.push(entry)
       }
     }
@@ -108,16 +98,11 @@ export default defineEventHandler(async (event) => {
       data: {
         revenueBookId,
         entriesCount: insertedEntries.length,
-        entries: insertedEntries
-      }
+        entries: insertedEntries,
+      },
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error creating revenue report:', error)
-    setResponseStatus(event, 500)
-    return {
-      success: false,
-      message: 'Failed to create revenue report',
-      error: error.message
-    }
+    return toErrorResponse(event, error, 'Failed to create revenue report')
   }
 })

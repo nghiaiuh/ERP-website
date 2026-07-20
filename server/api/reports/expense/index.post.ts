@@ -2,11 +2,15 @@ import { db } from '../../../utils/drizzle'
 import { soChiPhi, donChiPhi, doanhNghiep } from '../../../db/schema'
 import { eq, and } from 'drizzle-orm'
 import { validateReportBody } from '../../../utils/validation'
+import { toErrorResponse, throwValidationError } from '../../../utils/api-response'
 export default defineEventHandler(async (event) => {
   try {
     const body = await readBody(event)
 
     const validationErrors = validateReportBody(body, 'totalExpense')
+    if (validationErrors.length > 0) {
+      throwValidationError('Invalid expense report payload', validationErrors)
+    }
     if (validationErrors.length > 0) {
       throw createError({
         statusCode: 400,
@@ -113,11 +117,6 @@ export default defineEventHandler(async (event) => {
     }
   } catch (error: any) {
     console.error('Error creating expense report:', error)
-    setResponseStatus(event, 500)
-    return {
-      success: false,
-      message: 'Failed to create expense report',
-      error: error.message
-    }
+    return toErrorResponse(event, error, 'Failed to create expense report')
   }
 })
