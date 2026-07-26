@@ -1,6 +1,7 @@
 export interface JwtUserInfo {
-  id: number;
+  id: string;
   email: string;
   username: string | null;
+  displayName?: string | null;
   createdAt: string | null;
 }

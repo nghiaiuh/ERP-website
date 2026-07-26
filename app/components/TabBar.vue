@@ -60,7 +60,10 @@ const navigateTab = async (direction: "prev" | "next") => {
     nextIndex = currentIndex < props.tabs.length - 1 ? currentIndex + 1 : 0;
   }
 
-  await navigateTo(props.tabs[nextIndex].path);
+  const nextTab = props.tabs[nextIndex];
+  if (!nextTab) return;
+
+  await navigateTo(nextTab.path);
 };
 </script>
 

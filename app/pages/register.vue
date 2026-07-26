@@ -67,7 +67,7 @@
               id="password"
               required
               class="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-              placeholder="Enter your password (min 6 characters)"
+              placeholder="Enter your password (min 8 characters)"
             />
           </div>
         </div>
@@ -128,15 +128,15 @@ async function submitForm() {
     return;
   }
 
-  if (form.password.length < 6) {
-    error.value = "Password must be at least 6 characters long";
+  if (form.password.length < 8) {
+    error.value = "Password must be at least 8 characters long";
     return;
   }
 
   loading.value = true;
 
   try {
-    const result = await $fetch("/api/auth/register", {
+    await $fetch("/api/auth/register", {
       method: "POST",
       body: {
         name: form.username,

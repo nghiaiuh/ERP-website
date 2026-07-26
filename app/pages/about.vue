@@ -95,25 +95,17 @@
 </template>
 
 <script lang="ts" setup>
-import { createClient } from "@supabase/supabase-js";
-
 type AboutUser = {
-  id: number;
-  email: string;
+  id: string;
+  email: string | null;
   username: string | null;
   createdAt: string | null;
   updatedAt: string | null;
 };
 
-const config = useRuntimeConfig();
 const users = ref<AboutUser[]>([]);
 const pending = ref(true);
 const error = ref<Error | null>(null);
-
-const supabase = createClient(
-  config.public.supabaseUrl,
-  config.public.supabaseAnonKey,
-);
 
 const usersData = computed(() => users.value);
 
@@ -128,6 +120,7 @@ const formatDate = (date: string | null) => {
   });
 };
 
+/* Legacy client-side table access. Supabase RLS now blocks it by design.
 onMounted(async () => {
   const { data, error: supabaseError } = await supabase
     .from("users")
@@ -149,5 +142,17 @@ onMounted(async () => {
   }
 
   pending.value = false;
+});
+*/
+
+onMounted(async () => {
+  try {
+    const result = await $fetch<{ data: AboutUser }>("/api/users");
+    users.value = [result.data];
+  } catch (fetchError) {
+    error.value = fetchError instanceof Error ? fetchError : new Error("Unable to load profile");
+  } finally {
+    pending.value = false;
+  }
 });
 </script>

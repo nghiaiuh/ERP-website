@@ -103,7 +103,6 @@
 
 <script lang="ts" setup>
 
-const router = useRouter();
 const error = ref<string | null>(null);
 const success = ref<string | null>(null);
 const loading = ref(false);
@@ -124,20 +123,13 @@ async function submitForm() {
 
   loading.value = true;
   try {
-    const result = await $fetch("/api/auth/login", {
+    await $fetch("/api/auth/login", {
       method: "POST",
       body: {
         identifier: form.identifier,
         password: form.password,
       },
     });
-    const tokenCookie = useCookie("jwt_token", {
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: "/",
-    });
-    tokenCookie.value = result.token;
-
-    console.log("JWT token:", result.token);
     success.value = "Login successful! Redirecting...";
 
     form.identifier = "";

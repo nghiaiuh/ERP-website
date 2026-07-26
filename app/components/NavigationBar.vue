@@ -35,7 +35,7 @@ const handleSidebarToggle = (collapsed: boolean) => {
   isSidebarCollapsed.value = collapsed;
 };
 
-// Authentication logic
+/* Browser-readable tokens are no longer used.
 const token = useCookie("jwt_token");
 const { data: user, refresh } = await useAsyncData<JwtUserInfo | null>(
   "navbar-user",
@@ -64,4 +64,17 @@ watch(token, (newVal, oldVal) => {
     refresh();
   }
 });
+*/
+
+const { data: user } = await useAsyncData<JwtUserInfo | null>(
+  "navbar-user",
+  async () => {
+    try {
+      const result = await $fetch<{ success: boolean; data: JwtUserInfo }>("/api/users");
+      return result.success ? result.data : null;
+    } catch {
+      return null;
+    }
+  },
+);
 </script>
