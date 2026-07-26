@@ -1,15 +1,15 @@
-import { boolean, date, index, integer, jsonb, numeric, pgTable, serial, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/pg-core"
+import { boolean, date, index, integer, jsonb, numeric, pgTable, serial, text, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 // ============================
-// USERS - Authentication
+// USERS - Supabase Auth profile. Credentials live only in auth.users.
 // ============================
 
 export const users = pgTable("users", {
-	id: serial("id").primaryKey(),
-	email: varchar("email", { length: 255 }).notNull().unique(),
-	password: text("password").notNull(),
+	id: uuid("id").primaryKey(),
 	username: varchar("username", { length: 100 }),
+	displayName: varchar("display_name", { length: 255 }),
+	avatarUrl: text("avatar_url"),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
 	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
 });
@@ -232,7 +232,7 @@ export const giaoDichThanhToan = pgTable("giao_dich_thanh_toan", {
 	soTaiKhoan: varchar("so_tai_khoan", { length: 50 }),
 	maThamChieu: varchar("ma_tham_chieu", { length: 255 }),
 	ghiChu: text("ghi_chu"),
-	nguoiTaoId: integer("nguoi_tao_id").references(() => users.id),
+	nguoiTaoId: uuid("nguoi_tao_id").references(() => users.id),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
 }, (table) => ({
 	idxNgay: index("idx_giao_dich_thanh_toan_ngay").on(table.ngayGiaoDich),
@@ -262,7 +262,7 @@ export const baoCaoThue = pgTable("bao_cao_thue", {
 	ngayTra: timestamp("ngay_tra", { mode: 'string' }),
 	ghiChu: text("ghi_chu"),
 	metadata: jsonb("metadata"),
-	nguoiTaoId: integer("nguoi_tao_id").references(() => users.id),
+	nguoiTaoId: uuid("nguoi_tao_id").references(() => users.id),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
 	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
 }, (table) => ({
@@ -310,7 +310,7 @@ export const tenants = pgTable("tenants", {
 export const userTenantMemberships = pgTable("user_tenant_memberships", {
 	id: serial("id").primaryKey(),
 	tenantId: integer("tenant_id").notNull().references(() => tenants.id, { onDelete: 'cascade' }),
-	userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+	userId: uuid("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
 	role: varchar("role", { length: 50 }).notNull().default("member"),
 	status: varchar("status", { length: 30 }).notNull().default("active"),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
@@ -337,7 +337,7 @@ export const roles = pgTable("roles", {
 export const telegramIdentities = pgTable("telegram_identities", {
 	id: serial("id").primaryKey(),
 	tenantId: integer("tenant_id").notNull().references(() => tenants.id, { onDelete: 'cascade' }),
-	userId: integer("user_id").references(() => users.id, { onDelete: 'set null' }),
+	userId: uuid("user_id").references(() => users.id, { onDelete: 'set null' }),
 	telegramUserId: varchar("telegram_user_id", { length: 100 }).notNull(),
 	username: varchar("username", { length: 255 }),
 	displayName: varchar("display_name", { length: 255 }),
@@ -370,7 +370,7 @@ export const inboundMessages = pgTable("inbound_messages", {
 	channel: varchar("channel", { length: 50 }).notNull(),
 	externalMessageId: varchar("external_message_id", { length: 255 }),
 	telegramUpdateId: varchar("telegram_update_id", { length: 100 }),
-	senderUserId: integer("sender_user_id").references(() => users.id, { onDelete: 'set null' }),
+	senderUserId: uuid("sender_user_id").references(() => users.id, { onDelete: 'set null' }),
 	messageType: varchar("message_type", { length: 50 }).notNull().default("text"),
 	bodyText: text("body_text"),
 	payload: jsonb("payload").notNull().default(sql`'{}'::jsonb`),
@@ -402,7 +402,7 @@ export const outboundMessages = pgTable("outbound_messages", {
 export const documents = pgTable("documents", {
 	id: serial("id").primaryKey(),
 	tenantId: integer("tenant_id").notNull().references(() => tenants.id, { onDelete: 'cascade' }),
-	ownerUserId: integer("owner_user_id").references(() => users.id, { onDelete: 'set null' }),
+	ownerUserId: uuid("owner_user_id").references(() => users.id, { onDelete: 'set null' }),
 	source: varchar("source", { length: 50 }).notNull().default("web"),
 	objectKey: text("object_key").notNull(),
 	fileName: varchar("file_name", { length: 500 }),
@@ -422,7 +422,7 @@ export const documents = pgTable("documents", {
 export const submissions = pgTable("submissions", {
 	id: serial("id").primaryKey(),
 	tenantId: integer("tenant_id").notNull().references(() => tenants.id, { onDelete: 'cascade' }),
-	createdByUserId: integer("created_by_user_id").references(() => users.id, { onDelete: 'set null' }),
+	createdByUserId: uuid("created_by_user_id").references(() => users.id, { onDelete: 'set null' }),
 	conversationId: integer("conversation_id").references(() => conversations.id, { onDelete: 'set null' }),
 	status: varchar("status", { length: 50 }).notNull().default("received"),
 	title: varchar("title", { length: 255 }),
@@ -508,12 +508,12 @@ export const reviewTasks = pgTable("review_tasks", {
 	tenantId: integer("tenant_id").notNull().references(() => tenants.id, { onDelete: 'cascade' }),
 	submissionId: integer("submission_id").notNull().references(() => submissions.id, { onDelete: 'cascade' }),
 	extractionResultId: integer("extraction_result_id").references(() => extractionResults.id, { onDelete: 'set null' }),
-	assignedToUserId: integer("assigned_to_user_id").references(() => users.id, { onDelete: 'set null' }),
+	assignedToUserId: uuid("assigned_to_user_id").references(() => users.id, { onDelete: 'set null' }),
 	status: varchar("status", { length: 50 }).notNull().default("pending"),
 	priority: integer("priority").notNull().default(0),
 	dueAt: timestamp("due_at", { mode: 'string' }),
 	lockedAt: timestamp("locked_at", { mode: 'string' }),
-	lockedByUserId: integer("locked_by_user_id").references(() => users.id, { onDelete: 'set null' }),
+	lockedByUserId: uuid("locked_by_user_id").references(() => users.id, { onDelete: 'set null' }),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
 	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
 }, (table) => ({
@@ -525,7 +525,7 @@ export const reviewChanges = pgTable("review_changes", {
 	id: serial("id").primaryKey(),
 	tenantId: integer("tenant_id").notNull().references(() => tenants.id, { onDelete: 'cascade' }),
 	reviewTaskId: integer("review_task_id").notNull().references(() => reviewTasks.id, { onDelete: 'cascade' }),
-	changedByUserId: integer("changed_by_user_id").references(() => users.id, { onDelete: 'set null' }),
+	changedByUserId: uuid("changed_by_user_id").references(() => users.id, { onDelete: 'set null' }),
 	fieldPath: varchar("field_path", { length: 255 }).notNull(),
 	proposedValue: jsonb("proposed_value"),
 	confirmedValue: jsonb("confirmed_value"),
@@ -598,7 +598,7 @@ export const accountingPeriods = pgTable("accounting_periods", {
 	periodEnd: date("period_end").notNull(),
 	status: varchar("status", { length: 30 }).notNull().default("open"),
 	closedAt: timestamp("closed_at", { mode: 'string' }),
-	closedByUserId: integer("closed_by_user_id").references(() => users.id, { onDelete: 'set null' }),
+	closedByUserId: uuid("closed_by_user_id").references(() => users.id, { onDelete: 'set null' }),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
 	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
 }, (table) => ({
@@ -618,7 +618,7 @@ export const journalEntries = pgTable("journal_entries", {
 	sourceVersion: integer("source_version").notNull().default(1),
 	idempotencyKey: varchar("idempotency_key", { length: 255 }),
 	postedAt: timestamp("posted_at", { mode: 'string' }).defaultNow(),
-	postedByUserId: integer("posted_by_user_id").references(() => users.id, { onDelete: 'set null' }),
+	postedByUserId: uuid("posted_by_user_id").references(() => users.id, { onDelete: 'set null' }),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
 }, (table) => ({
 	entryNumberUnique: uniqueIndex("ux_journal_entries_tenant_number").on(table.tenantId, table.entryNumber),
@@ -677,7 +677,7 @@ export const paymentAllocations = pgTable("payment_allocations", {
 export const auditEvents = pgTable("audit_events", {
 	id: serial("id").primaryKey(),
 	tenantId: integer("tenant_id").references(() => tenants.id, { onDelete: 'cascade' }),
-	actorUserId: integer("actor_user_id").references(() => users.id, { onDelete: 'set null' }),
+	actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: 'set null' }),
 	action: varchar("action", { length: 100 }).notNull(),
 	entityType: varchar("entity_type", { length: 100 }).notNull(),
 	entityId: varchar("entity_id", { length: 100 }),

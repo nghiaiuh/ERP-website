@@ -1,534 +1,554 @@
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    password TEXT NOT NULL,
-    username VARCHAR(100),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-select * from don_chi_phi
-select * from _chi_phi
-select * from so_doanh_thu
-select * from don_doanh_thu
-select * from doanh_nghiep
-truncate table so_chi_phi cascade
-create table doanh_nghiep (
-	id SERIAL PRIMARY KEY,
-	ten_doanh_nghiep VARCHAR(255) DEFAULT 'Cơ sở Điêu Khắc Trang Trí Vĩnh Tiến',
-	ma_so_thue VARCHAR(50) DEFAULT '042179006886',
-	dia_chi TEXT DEFAULT '1955, xã Bình Minh, tỉnh Đồng Nai'
-);
+-- ERP secure Supabase bootstrap (fresh database only)
+--
+-- Authentication source of truth: auth.users (managed by Supabase Auth).
+-- public.users is a non-secret application profile. It never stores email,
+-- passwords, password hashes, refresh tokens, or MFA recovery material.
+--
+-- Do not run this against the legacy database in place. Follow the migration
+-- plan in README.md to create Supabase Auth accounts and backfill data safely.
 
---SỔ DOANH THU
-CREATE TABLE so_doanh_thu (
-	id SERIAL PRIMARY KEY,
-	doanh_nghiep_id integer references doanh_nghiep(id) on delete cascade,
-    mau_so VARCHAR(50) DEFAULT 'S1a-HKD TT 152/2025/TT-BTC 31/12/2025',
-	ngay_bat_dau DATE NOT NULL,
-    ngay_ket_thuc DATE NOT NULL,
-	tong_tien NUMERIC(18,2) DEFAULT 0,
-	CHECK (ngay_ket_thuc >= ngay_bat_dau),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
---SỔ CHI PHÍ
-CREATE TABLE so_chi_phi (
-	id SERIAL PRIMARY KEY,
-	doanh_nghiep_id integer references doanh_nghiep(id) on delete cascade,
-    mau_so VARCHAR(50) DEFAULT 'S2c-HKD TT 152/2025/TT-BTC 31/12/2025',
-	ngay_bat_dau DATE NOT NULL,
-    ngay_ket_thuc DATE NOT NULL,
-	tong_tien NUMERIC(18,2) DEFAULT 0,
-	CHECK (ngay_ket_thuc >= ngay_bat_dau),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+begin;
+
+create extension if not exists pgcrypto;
+
+-- ---------------------------------------------------------------------------
+-- Identity, tenant isolation and authorization
+-- ---------------------------------------------------------------------------
+
+create table if not exists public.tenants (
+  id serial primary key,
+  name varchar(255) not null,
+  slug varchar(100) not null unique,
+  status varchar(30) not null default 'active'
+    check (status in ('active', 'suspended', 'archived')),
+  timezone varchar(100) not null default 'Asia/Ho_Chi_Minh',
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
---ĐƠN DOANH THU
--- Ghi nhận các khoản doanh thu vào sổ kế toán
-CREATE TABLE don_doanh_thu(
-	id SERIAL PRIMARY KEY,
-	revenue_book_id INTEGER NOT NULL REFERENCES so_doanh_thu(id) ON DELETE CASCADE,
-	hoa_don_ban_id INTEGER REFERENCES hoa_don_ban(id) ON DELETE SET NULL,
-	so_chung_tu VARCHAR(100) NOT NULL,
-	ngay_ghi_nhan DATE NOT NULL,
-	mo_ta TEXT,
-	phan_loai VARCHAR(100), -- Phân loại khoản thu (bán hàng, dịch vụ, khác...)
-	so_tien NUMERIC(18,2) DEFAULT 0,
-	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
--- Note: so_tien có thể được lấy từ hoa_don_ban.tong_tien khi có hoa_don_ban_id, hoặc nhập trực tiếp
---ĐƠN CHI PHÍ
--- Ghi nhận các khoản chi phí vào sổ kế toán
-CREATE TABLE don_chi_phi (
-    id SERIAL PRIMARY KEY,
-    expense_book_id INTEGER NOT NULL REFERENCES so_chi_phi(id) ON DELETE CASCADE,
-    hoa_don_mua_id INTEGER REFERENCES hoa_don_mua(id) ON DELETE SET NULL,
-    so_chung_tu VARCHAR(100),
-    ngay_ghi_nhan DATE NOT NULL,
-    mo_ta TEXT,
-    phan_loai VARCHAR(100), -- Phân loại khoản chi (mua hàng, lương, vận hành...)
-    so_tien NUMERIC(18,2) DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
--- Note: so_tien có thể được lấy từ hoa_don_mua.tong_tien khi có hoa_don_mua_id, hoặc nhập trực tiếp
-
---ĐỐI TÁC (Khách hàng, nhà cung cấp)
-CREATE TABLE doi_tac (
-	id SERIAL PRIMARY KEY,
-	ma_doi_tac VARCHAR(50) UNIQUE NOT NULL,
-	ten_doi_tac VARCHAR(255) NOT NULL,
-	loai_doi_tac VARCHAR(30) CHECK (loai_doi_tac IN ('khach_hang','nha_cung_cap','ca_hai')) NOT NULL,
-	ma_so_thue VARCHAR(50),
-    dia_chi TEXT,
-    dien_thoai VARCHAR(20),
-    email VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+create table if not exists public.users (
+  id uuid primary key references auth.users(id) on delete cascade,
+  username varchar(100),
+  display_name varchar(255),
+  avatar_url text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint users_username_format check (username is null or username ~ '^[A-Za-z0-9_.-]{3,100}$')
 );
 
---HỢP ĐỒNG
-CREATE TABLE hop_dong (
-	id SERIAL PRIMARY KEY,
-	ma_hop_dong VARCHAR(100) UNIQUE,
-	doi_tac_id INTEGER REFERENCES doi_tac(id),
-	tong_gia_tri NUMERIC(18,2) CHECK (tong_gia_tri >= 0),
-	ngay_bat_dau DATE,
-	ngay_ket_thuc DATE,
-	CHECK (ngay_ket_thuc >= ngay_bat_dau),
-	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+create unique index if not exists ux_users_username_ci
+  on public.users (lower(username)) where username is not null;
+
+create table if not exists public.user_tenant_memberships (
+  id serial primary key,
+  tenant_id integer not null references public.tenants(id) on delete cascade,
+  user_id uuid not null references public.users(id) on delete cascade,
+  role varchar(30) not null default 'member'
+    check (role in ('owner', 'admin', 'accountant', 'reviewer', 'member', 'viewer')),
+  status varchar(30) not null default 'active'
+    check (status in ('active', 'invited', 'suspended')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (tenant_id, user_id)
 );
 
---HOÁ ĐƠN
-CREATE TABLE hoa_don_ban (
-    id SERIAL PRIMARY KEY,
-    ma_hoa_don VARCHAR(100) UNIQUE NOT NULL,
-    doi_tac_id INTEGER NOT NULL REFERENCES doi_tac(id),
-    hop_dong_id INTEGER REFERENCES hop_dong(id),
-    ngay_hoa_don DATE NOT NULL,
-    tong_tien NUMERIC(18,2) DEFAULT 0,
-    trang_thai VARCHAR(30) CHECK (
-        trang_thai IN ('chua_thu','da_thu','mot_phan')
-    ) DEFAULT 'chua_thu',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+create index if not exists idx_memberships_user_active
+  on public.user_tenant_memberships (user_id, status);
+
+-- This trigger copies only safe display metadata into the ERP profile.
+-- Supabase Auth owns all credential material and its auth.users schema.
+create or replace function public.handle_new_auth_user()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  insert into public.users (id, username, display_name)
+  values (
+    new.id,
+    nullif(new.raw_user_meta_data ->> 'username', ''),
+    nullif(coalesce(new.raw_user_meta_data ->> 'display_name', new.raw_user_meta_data ->> 'username'), '')
+  )
+  on conflict (id) do update
+  set username = coalesce(excluded.username, public.users.username),
+      display_name = coalesce(excluded.display_name, public.users.display_name),
+      updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_auth_user();
+
+create or replace function public.set_updated_at()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+-- Security-definer helper avoids RLS recursion when a policy checks membership.
+create or replace function public.is_tenant_member(target_tenant_id integer)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.user_tenant_memberships membership
+    where membership.tenant_id = target_tenant_id
+      and membership.user_id = auth.uid()
+      and membership.status = 'active'
+  );
+$$;
+
+create or replace function public.can_manage_tenant(target_tenant_id integer)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.user_tenant_memberships membership
+    where membership.tenant_id = target_tenant_id
+      and membership.user_id = auth.uid()
+      and membership.status = 'active'
+      and membership.role in ('owner', 'admin')
+  );
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Legacy ERP domain, now tenant scoped and with tenant-safe foreign keys.
+-- ---------------------------------------------------------------------------
+
+create table if not exists public.doanh_nghiep (
+  id serial primary key,
+  tenant_id integer not null references public.tenants(id) on delete cascade,
+  ten_doanh_nghiep varchar(255) not null,
+  ma_so_thue varchar(50),
+  dia_chi text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (tenant_id, id),
+  unique nulls not distinct (tenant_id, ma_so_thue)
 );
 
-CREATE TABLE hoa_don_mua (
-    id SERIAL PRIMARY KEY,
-    ma_hoa_don VARCHAR(100) UNIQUE NOT NULL,
-    doi_tac_id INTEGER NOT NULL REFERENCES doi_tac(id),
-    ngay_hoa_don DATE NOT NULL,
-    tong_tien NUMERIC(18,2) DEFAULT 0,
-    trang_thai VARCHAR(30) CHECK (
-        trang_thai IN ('chua_tra','da_tra','mot_phan')
-    ) DEFAULT 'chua_tra',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+create table if not exists public.doi_tac (
+  id serial primary key,
+  tenant_id integer not null references public.tenants(id) on delete cascade,
+  ma_doi_tac varchar(50) not null,
+  ten_doi_tac varchar(255) not null,
+  loai_doi_tac varchar(30) not null check (loai_doi_tac in ('khach_hang', 'nha_cung_cap', 'ca_hai')),
+  ma_so_thue varchar(50),
+  dia_chi text,
+  dien_thoai varchar(20),
+  email varchar(255),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (tenant_id, id),
+  unique (tenant_id, ma_doi_tac)
 );
 
--- Bảng THUE đã bị xóa vì thông tin thuế được lưu trong:
--- - hoa_don_ban_chi_tiet.ty_le_thue
--- - hoa_don_mua_chi_tiet.ty_le_thue
--- - chi_tiet_thue (cho báo cáo thuế)
-
---CÔNG NỢ
-CREATE TABLE cong_no (
-    id SERIAL PRIMARY KEY,
-    doi_tac_id INTEGER NOT NULL REFERENCES doi_tac(id),
-    loai_cong_no VARCHAR(30) CHECK (
-        loai_cong_no IN ('phai_thu','phai_tra')
-    ) NOT NULL,
-    so_tien NUMERIC(18,2) NOT NULL,
-    han_thanh_toan DATE,
-	hoa_don_ban_id INTEGER REFERENCES hoa_don_ban(id),
-	hoa_don_mua_id INTEGER REFERENCES hoa_don_mua(id),
-	CHECK (
-	    (hoa_don_ban_id IS NOT NULL AND hoa_don_mua_id IS NULL)
-	    OR
-	    (hoa_don_ban_id IS NULL AND hoa_don_mua_id IS NOT NULL)
-	),
-    trang_thai VARCHAR(30) CHECK (
-        trang_thai IN ('chua_thanh_toan','mot_phan','da_thanh_toan')
-    ) DEFAULT 'chua_thanh_toan',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+create table if not exists public.hop_dong (
+  id serial primary key,
+  tenant_id integer not null references public.tenants(id) on delete cascade,
+  ma_hop_dong varchar(100),
+  doi_tac_id integer,
+  tong_gia_tri numeric(18, 2) check (tong_gia_tri >= 0),
+  ngay_bat_dau date,
+  ngay_ket_thuc date,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (tenant_id, id),
+  unique nulls not distinct (tenant_id, ma_hop_dong),
+  foreign key (tenant_id, doi_tac_id) references public.doi_tac(tenant_id, id),
+  check (ngay_ket_thuc is null or ngay_bat_dau is null or ngay_ket_thuc >= ngay_bat_dau)
 );
 
---CHI TIẾT HÓA ĐƠN BÁN
-CREATE TABLE hoa_don_ban_chi_tiet (
-    id SERIAL PRIMARY KEY,
-    hoa_don_ban_id INTEGER NOT NULL REFERENCES hoa_don_ban(id) ON DELETE CASCADE,
-    ten_hang_hoa VARCHAR(255) NOT NULL,
-    mo_ta TEXT,
-    so_luong NUMERIC(18,3) NOT NULL CHECK (so_luong > 0),
-    don_vi VARCHAR(50),
-    don_gia NUMERIC(18,2) NOT NULL CHECK (don_gia >= 0),
-    ty_le_thue NUMERIC(5,2) DEFAULT 10 CHECK (ty_le_thue >= 0 AND ty_le_thue <= 100),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
--- Note: thanh_tien = so_luong * don_gia
--- Note: tien_thue = thanh_tien * ty_le_thue / 100
--- Note: tong_tien = thanh_tien + tien_thue
--- Tính toán khi query hoặc dùng trigger để cập nhật hoa_don_ban.tong_tien
-
---CHI TIẾT HÓA ĐƠN MUA
-CREATE TABLE hoa_don_mua_chi_tiet (
-    id SERIAL PRIMARY KEY,
-    hoa_don_mua_id INTEGER NOT NULL REFERENCES hoa_don_mua(id) ON DELETE CASCADE,
-    ten_hang_hoa VARCHAR(255) NOT NULL,
-    mo_ta TEXT,
-    so_luong NUMERIC(18,3) NOT NULL CHECK (so_luong > 0),
-    don_vi VARCHAR(50),
-    don_gia NUMERIC(18,2) NOT NULL CHECK (don_gia >= 0),
-    ty_le_thue NUMERIC(5,2) DEFAULT 10 CHECK (ty_le_thue >= 0 AND ty_le_thue <= 100),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
--- Note: thanh_tien = so_luong * don_gia
--- Note: tien_thue = thanh_tien * ty_le_thue / 100
--- Note: tong_tien = thanh_tien + tien_thue
--- Tính toán khi query hoặc dùng trigger để cập nhật hoa_don_mua.tong_tien
-
---GIAO DỊCH THANH TOÁN
-CREATE TABLE giao_dich_thanh_toan (
-    id SERIAL PRIMARY KEY,
-    ma_giao_dich VARCHAR(100) UNIQUE NOT NULL,
-    loai_giao_dich VARCHAR(30) CHECK (
-        loai_giao_dich IN ('thu','chi')
-    ) NOT NULL,
-    doi_tac_id INTEGER REFERENCES doi_tac(id),
-    hoa_don_ban_id INTEGER REFERENCES hoa_don_ban(id),
-    hoa_don_mua_id INTEGER REFERENCES hoa_don_mua(id),
-    cong_no_id INTEGER REFERENCES cong_no(id),
-    so_tien NUMERIC(18,2) NOT NULL CHECK (so_tien > 0),
-    phuong_thuc VARCHAR(50) CHECK (
-        phuong_thuc IN ('tien_mat','chuyen_khoan','the','khac')
-    ) DEFAULT 'tien_mat',
-    ngay_giao_dich DATE NOT NULL,
-    ten_ngan_hang VARCHAR(255),
-    so_tai_khoan VARCHAR(50),
-    ma_tham_chieu VARCHAR(255),
-    ghi_chu TEXT,
-    nguoi_tao_id INTEGER REFERENCES users(id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+create table if not exists public.hoa_don_ban (
+  id serial primary key,
+  tenant_id integer not null references public.tenants(id) on delete cascade,
+  ma_hoa_don varchar(100) not null,
+  doi_tac_id integer not null,
+  hop_dong_id integer,
+  ngay_hoa_don date not null,
+  tong_tien numeric(18, 2) not null default 0 check (tong_tien >= 0),
+  trang_thai varchar(30) not null default 'chua_thu'
+    check (trang_thai in ('chua_thu', 'da_thu', 'mot_phan', 'huy')),
+  created_by_user_id uuid references public.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (tenant_id, id),
+  unique (tenant_id, ma_hoa_don),
+  foreign key (tenant_id, doi_tac_id) references public.doi_tac(tenant_id, id),
+  foreign key (tenant_id, hop_dong_id) references public.hop_dong(tenant_id, id)
 );
 
---BÁO CÁO THUẾ
-CREATE TABLE bao_cao_thue (
-    id SERIAL PRIMARY KEY,
-    ma_bao_cao VARCHAR(100) UNIQUE NOT NULL,
-    loai_thue VARCHAR(50) NOT NULL, -- 'VAT', 'TNCN', 'TNDN'
-    ky_bao_cao VARCHAR(20) NOT NULL, -- 'thang', 'quy', 'nam'
-    ngay_bat_dau DATE NOT NULL,
-    ngay_ket_thuc DATE NOT NULL,
-    tong_doanh_thu NUMERIC(18,2) DEFAULT 0,
-    tong_chi_phi NUMERIC(18,2) DEFAULT 0,
-    so_tien_chiu_thue NUMERIC(18,2) DEFAULT 0,
-    ty_le_thue NUMERIC(5,2) DEFAULT 0,
-    so_tien_thue NUMERIC(18,2) DEFAULT 0, -- Tổng thuế phải nộp
-    so_tien_da_tra NUMERIC(18,2) DEFAULT 0, -- Số tiền đã thanh toán
-    -- so_tien_con_lai đã xóa - tính bằng: so_tien_thue - so_tien_da_tra
-    trang_thai VARCHAR(30) CHECK (
-        trang_thai IN ('ban_nhap','da_nop','da_tra','mot_phan')
-    ) DEFAULT 'ban_nhap',
-    ngay_nop TIMESTAMP,
-    han_nop DATE,
-    ngay_tra TIMESTAMP,
-    ghi_chu TEXT,
-    metadata JSONB,
-    nguoi_tao_id INTEGER REFERENCES users(id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CHECK (ngay_ket_thuc >= ngay_bat_dau)
+create table if not exists public.hoa_don_mua (
+  id serial primary key,
+  tenant_id integer not null references public.tenants(id) on delete cascade,
+  ma_hoa_don varchar(100) not null,
+  doi_tac_id integer not null,
+  ngay_hoa_don date not null,
+  tong_tien numeric(18, 2) not null default 0 check (tong_tien >= 0),
+  trang_thai varchar(30) not null default 'chua_tra'
+    check (trang_thai in ('chua_tra', 'da_tra', 'mot_phan', 'huy')),
+  created_by_user_id uuid references public.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (tenant_id, id),
+  unique (tenant_id, ma_hoa_don),
+  foreign key (tenant_id, doi_tac_id) references public.doi_tac(tenant_id, id)
 );
 
---CHI TIẾT THUẾ (liên kết báo cáo thuế với hóa đơn)
-CREATE TABLE chi_tiet_thue (
-    id SERIAL PRIMARY KEY,
-    bao_cao_thue_id INTEGER NOT NULL REFERENCES bao_cao_thue(id) ON DELETE CASCADE,
-    danh_muc VARCHAR(100) NOT NULL,
-    mo_ta TEXT,
-    so_tien_tinh_thue NUMERIC(18,2) NOT NULL,
-    ty_le_thue NUMERIC(5,2) NOT NULL,
-    tien_thue NUMERIC(18,2) NOT NULL,
-    hoa_don_ban_id INTEGER REFERENCES hoa_don_ban(id),
-    hoa_don_mua_id INTEGER REFERENCES hoa_don_mua(id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+create table if not exists public.hoa_don_ban_chi_tiet (
+  id serial primary key,
+  tenant_id integer not null references public.tenants(id) on delete cascade,
+  hoa_don_ban_id integer not null,
+  ten_hang_hoa varchar(255) not null,
+  mo_ta text,
+  so_luong numeric(18, 3) not null check (so_luong > 0),
+  don_vi varchar(50),
+  don_gia numeric(18, 2) not null check (don_gia >= 0),
+  ty_le_thue numeric(5, 2) not null default 10 check (ty_le_thue between 0 and 100),
+  created_at timestamptz not null default now(),
+  unique (tenant_id, id),
+  foreign key (tenant_id, hoa_don_ban_id) references public.hoa_don_ban(tenant_id, id) on delete cascade
 );
 
--- ============================
--- INDEXES FOR PERFORMANCE
--- ============================
-CREATE INDEX idx_hoa_don_ban_doi_tac ON hoa_don_ban(doi_tac_id);
-CREATE INDEX idx_hoa_don_ban_ngay ON hoa_don_ban(ngay_hoa_don);
-CREATE INDEX idx_hoa_don_mua_doi_tac ON hoa_don_mua(doi_tac_id);
-CREATE INDEX idx_hoa_don_mua_ngay ON hoa_don_mua(ngay_hoa_don);
-CREATE INDEX idx_cong_no_doi_tac ON cong_no(doi_tac_id);
-CREATE INDEX idx_cong_no_trang_thai ON cong_no(trang_thai);
-CREATE INDEX idx_don_doanh_thu_ngay ON don_doanh_thu(ngay_ghi_nhan);
-CREATE INDEX idx_don_doanh_thu_hoa_don ON don_doanh_thu(hoa_don_ban_id);
-CREATE INDEX idx_don_chi_phi_ngay ON don_chi_phi(ngay_ghi_nhan);
-CREATE INDEX idx_don_chi_phi_hoa_don ON don_chi_phi(hoa_don_mua_id);
-CREATE INDEX idx_hoa_don_ban_chi_tiet ON hoa_don_ban_chi_tiet(hoa_don_ban_id);
-CREATE INDEX idx_hoa_don_mua_chi_tiet ON hoa_don_mua_chi_tiet(hoa_don_mua_id);
-CREATE INDEX idx_giao_dich_thanh_toan_ngay ON giao_dich_thanh_toan(ngay_giao_dich);
-CREATE INDEX idx_giao_dich_thanh_toan_doi_tac ON giao_dich_thanh_toan(doi_tac_id);
-CREATE INDEX idx_bao_cao_thue_trang_thai ON bao_cao_thue(trang_thai);
-CREATE INDEX idx_bao_cao_thue_ngay ON bao_cao_thue(ngay_bat_dau, ngay_ket_thuc);
-CREATE INDEX idx_chi_tiet_thue_bao_cao ON chi_tiet_thue(bao_cao_thue_id);
+create table if not exists public.hoa_don_mua_chi_tiet (
+  id serial primary key,
+  tenant_id integer not null references public.tenants(id) on delete cascade,
+  hoa_don_mua_id integer not null,
+  ten_hang_hoa varchar(255) not null,
+  mo_ta text,
+  so_luong numeric(18, 3) not null check (so_luong > 0),
+  don_vi varchar(50),
+  don_gia numeric(18, 2) not null check (don_gia >= 0),
+  ty_le_thue numeric(5, 2) not null default 10 check (ty_le_thue between 0 and 100),
+  created_at timestamptz not null default now(),
+  unique (tenant_id, id),
+  foreign key (tenant_id, hoa_don_mua_id) references public.hoa_don_mua(tenant_id, id) on delete cascade
+);
 
--- ============================
--- TRIGGERS & FUNCTIONS
--- ============================
+create table if not exists public.so_doanh_thu (
+  id serial primary key,
+  tenant_id integer not null references public.tenants(id) on delete cascade,
+  doanh_nghiep_id integer not null,
+  mau_so varchar(100) not null default 'S1a-HKD TT 152/2025/TT-BTC',
+  ngay_bat_dau date not null,
+  ngay_ket_thuc date not null,
+  tong_tien numeric(18, 2) not null default 0 check (tong_tien >= 0),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (tenant_id, id),
+  foreign key (tenant_id, doanh_nghiep_id) references public.doanh_nghiep(tenant_id, id),
+  check (ngay_ket_thuc >= ngay_bat_dau)
+);
 
--- Function: Tính tổng tiền hóa đơn bán từ chi tiết
-CREATE OR REPLACE FUNCTION tinh_tong_hoa_don_ban()
-RETURNS TRIGGER AS $$
-BEGIN
-    UPDATE hoa_don_ban
-    SET tong_tien = (
-        SELECT COALESCE(SUM(
-            so_luong * don_gia * (1 + ty_le_thue / 100)
-        ), 0)
-        FROM hoa_don_ban_chi_tiet
-        WHERE hoa_don_ban_id = COALESCE(NEW.hoa_don_ban_id, OLD.hoa_don_ban_id)
-    )
-    WHERE id = COALESCE(NEW.hoa_don_ban_id, OLD.hoa_don_ban_id);
-    
-    RETURN COALESCE(NEW, OLD);
-END;
-$$ LANGUAGE plpgsql;
+create table if not exists public.so_chi_phi (
+  id serial primary key,
+  tenant_id integer not null references public.tenants(id) on delete cascade,
+  doanh_nghiep_id integer not null,
+  mau_so varchar(100) not null default 'S2c-HKD TT 152/2025/TT-BTC',
+  ngay_bat_dau date not null,
+  ngay_ket_thuc date not null,
+  tong_tien numeric(18, 2) not null default 0 check (tong_tien >= 0),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (tenant_id, id),
+  foreign key (tenant_id, doanh_nghiep_id) references public.doanh_nghiep(tenant_id, id),
+  check (ngay_ket_thuc >= ngay_bat_dau)
+);
 
-CREATE TRIGGER trigger_tinh_tong_hoa_don_ban
-AFTER INSERT OR UPDATE OR DELETE ON hoa_don_ban_chi_tiet
-FOR EACH ROW
-EXECUTE FUNCTION tinh_tong_hoa_don_ban();
+create table if not exists public.don_doanh_thu (
+  id serial primary key,
+  tenant_id integer not null references public.tenants(id) on delete cascade,
+  revenue_book_id integer not null,
+  hoa_don_ban_id integer,
+  so_chung_tu varchar(100) not null,
+  ngay_ghi_nhan date not null,
+  mo_ta text,
+  phan_loai varchar(100),
+  so_tien numeric(18, 2) not null default 0 check (so_tien >= 0),
+  created_by_user_id uuid references public.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (tenant_id, id),
+  unique (tenant_id, so_chung_tu),
+  foreign key (tenant_id, revenue_book_id) references public.so_doanh_thu(tenant_id, id) on delete cascade,
+  foreign key (tenant_id, hoa_don_ban_id) references public.hoa_don_ban(tenant_id, id) on delete set null
+);
 
--- Function: Tính tổng tiền hóa đơn mua từ chi tiết
-CREATE OR REPLACE FUNCTION tinh_tong_hoa_don_mua()
-RETURNS TRIGGER AS $$
-BEGIN
-    UPDATE hoa_don_mua
-    SET tong_tien = (
-        SELECT COALESCE(SUM(
-            so_luong * don_gia * (1 + ty_le_thue / 100)
-        ), 0)
-        FROM hoa_don_mua_chi_tiet
-        WHERE hoa_don_mua_id = COALESCE(NEW.hoa_don_mua_id, OLD.hoa_don_mua_id)
-    )
-    WHERE id = COALESCE(NEW.hoa_don_mua_id, OLD.hoa_don_mua_id);
-    
-    RETURN COALESCE(NEW, OLD);
-END;
-$$ LANGUAGE plpgsql;
+create table if not exists public.don_chi_phi (
+  id serial primary key,
+  tenant_id integer not null references public.tenants(id) on delete cascade,
+  expense_book_id integer not null,
+  hoa_don_mua_id integer,
+  so_chung_tu varchar(100),
+  ngay_ghi_nhan date not null,
+  mo_ta text,
+  phan_loai varchar(100),
+  so_tien numeric(18, 2) not null default 0 check (so_tien >= 0),
+  created_by_user_id uuid references public.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (tenant_id, id),
+  unique nulls not distinct (tenant_id, so_chung_tu),
+  foreign key (tenant_id, expense_book_id) references public.so_chi_phi(tenant_id, id) on delete cascade,
+  foreign key (tenant_id, hoa_don_mua_id) references public.hoa_don_mua(tenant_id, id) on delete set null
+);
 
--- Trigger: Tự động tính tổng khi thêm/sửa/xóa chi tiết hóa đơn mua
-CREATE TRIGGER trigger_tinh_tong_hoa_don_mua
-AFTER INSERT OR UPDATE OR DELETE ON hoa_don_mua_chi_tiet
-FOR EACH ROW
-EXECUTE FUNCTION tinh_tong_hoa_don_mua();
+create table if not exists public.cong_no (
+  id serial primary key,
+  tenant_id integer not null references public.tenants(id) on delete cascade,
+  doi_tac_id integer not null,
+  loai_cong_no varchar(30) not null check (loai_cong_no in ('phai_thu', 'phai_tra')),
+  so_tien numeric(18, 2) not null check (so_tien > 0),
+  han_thanh_toan date,
+  hoa_don_ban_id integer,
+  hoa_don_mua_id integer,
+  trang_thai varchar(30) not null default 'chua_thanh_toan'
+    check (trang_thai in ('chua_thanh_toan', 'mot_phan', 'da_thanh_toan')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (tenant_id, id),
+  foreign key (tenant_id, doi_tac_id) references public.doi_tac(tenant_id, id),
+  foreign key (tenant_id, hoa_don_ban_id) references public.hoa_don_ban(tenant_id, id),
+  foreign key (tenant_id, hoa_don_mua_id) references public.hoa_don_mua(tenant_id, id),
+  check ((hoa_don_ban_id is not null) <> (hoa_don_mua_id is not null))
+);
 
--- Function: Tính tổng tiền sổ doanh thu từ các đơn doanh thu
-CREATE OR REPLACE FUNCTION tinh_tong_so_doanh_thu()
-RETURNS TRIGGER AS $$
-BEGIN
-    UPDATE so_doanh_thu
-    SET tong_tien = (
-        SELECT COALESCE(SUM(CAST(so_tien AS NUMERIC(18,2))), 0)
-        FROM don_doanh_thu
-        WHERE revenue_book_id = COALESCE(NEW.revenue_book_id, OLD.revenue_book_id)
-    )
-    WHERE id = COALESCE(NEW.revenue_book_id, OLD.revenue_book_id);
-    
-    RETURN COALESCE(NEW, OLD);
-END;
-$$ LANGUAGE plpgsql;
+create table if not exists public.giao_dich_thanh_toan (
+  id serial primary key,
+  tenant_id integer not null references public.tenants(id) on delete cascade,
+  ma_giao_dich varchar(100) not null,
+  loai_giao_dich varchar(30) not null check (loai_giao_dich in ('thu', 'chi')),
+  doi_tac_id integer,
+  hoa_don_ban_id integer,
+  hoa_don_mua_id integer,
+  cong_no_id integer,
+  so_tien numeric(18, 2) not null check (so_tien > 0),
+  phuong_thuc varchar(50) not null default 'tien_mat'
+    check (phuong_thuc in ('tien_mat', 'chuyen_khoan', 'the', 'khac')),
+  ngay_giao_dich date not null,
+  ten_ngan_hang varchar(255),
+  so_tai_khoan varchar(50),
+  ma_tham_chieu varchar(255),
+  ghi_chu text,
+  nguoi_tao_id uuid references public.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (tenant_id, id),
+  unique (tenant_id, ma_giao_dich),
+  foreign key (tenant_id, doi_tac_id) references public.doi_tac(tenant_id, id),
+  foreign key (tenant_id, hoa_don_ban_id) references public.hoa_don_ban(tenant_id, id),
+  foreign key (tenant_id, hoa_don_mua_id) references public.hoa_don_mua(tenant_id, id),
+  foreign key (tenant_id, cong_no_id) references public.cong_no(tenant_id, id)
+);
 
--- Trigger
-CREATE TRIGGER trigger_tinh_tong_so_doanh_thu
-AFTER INSERT OR UPDATE OR DELETE ON don_doanh_thu
-FOR EACH ROW
-EXECUTE FUNCTION tinh_tong_so_doanh_thu();
+create table if not exists public.bao_cao_thue (
+  id serial primary key,
+  tenant_id integer not null references public.tenants(id) on delete cascade,
+  ma_bao_cao varchar(100) not null,
+  loai_thue varchar(50) not null check (loai_thue in ('VAT', 'TNCN', 'TNDN', 'khac')),
+  ky_bao_cao varchar(20) not null check (ky_bao_cao in ('thang', 'quy', 'nam')),
+  ngay_bat_dau date not null,
+  ngay_ket_thuc date not null,
+  tong_doanh_thu numeric(18, 2) not null default 0,
+  tong_chi_phi numeric(18, 2) not null default 0,
+  so_tien_chiu_thue numeric(18, 2) not null default 0,
+  ty_le_thue numeric(5, 2) not null default 0 check (ty_le_thue between 0 and 100),
+  so_tien_thue numeric(18, 2) not null default 0,
+  so_tien_da_tra numeric(18, 2) not null default 0 check (so_tien_da_tra >= 0),
+  trang_thai varchar(30) not null default 'ban_nhap'
+    check (trang_thai in ('ban_nhap', 'da_nop', 'da_tra', 'mot_phan')),
+  ngay_nop timestamptz,
+  han_nop date,
+  ngay_tra timestamptz,
+  ghi_chu text,
+  metadata jsonb not null default '{}'::jsonb,
+  nguoi_tao_id uuid references public.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (tenant_id, id),
+  unique (tenant_id, ma_bao_cao),
+  check (ngay_ket_thuc >= ngay_bat_dau),
+  check (so_tien_da_tra <= so_tien_thue)
+);
 
--- Function: Tính tổng tiền sổ chi phí từ các đơn chi phí
-CREATE OR REPLACE FUNCTION tinh_tong_so_chi_phi()
-RETURNS TRIGGER AS $$
-BEGIN
-    UPDATE so_chi_phi
-    SET tong_tien = (
-        SELECT COALESCE(SUM(CAST(so_tien AS NUMERIC(18,2))), 0)
-        FROM don_chi_phi
-        WHERE expense_book_id = COALESCE(NEW.expense_book_id, OLD.expense_book_id)
-    )
-    WHERE id = COALESCE(NEW.expense_book_id, OLD.expense_book_id);
-    
-    RETURN COALESCE(NEW, OLD);
-END;
-$$ LANGUAGE plpgsql;
+create table if not exists public.chi_tiet_thue (
+  id serial primary key,
+  tenant_id integer not null references public.tenants(id) on delete cascade,
+  bao_cao_thue_id integer not null,
+  danh_muc varchar(100) not null,
+  mo_ta text,
+  so_tien_tinh_thue numeric(18, 2) not null check (so_tien_tinh_thue >= 0),
+  ty_le_thue numeric(5, 2) not null check (ty_le_thue between 0 and 100),
+  tien_thue numeric(18, 2) not null check (tien_thue >= 0),
+  hoa_don_ban_id integer,
+  hoa_don_mua_id integer,
+  created_at timestamptz not null default now(),
+  unique (tenant_id, id),
+  foreign key (tenant_id, bao_cao_thue_id) references public.bao_cao_thue(tenant_id, id) on delete cascade,
+  foreign key (tenant_id, hoa_don_ban_id) references public.hoa_don_ban(tenant_id, id),
+  foreign key (tenant_id, hoa_don_mua_id) references public.hoa_don_mua(tenant_id, id),
+  check (hoa_don_ban_id is null or hoa_don_mua_id is null)
+);
 
--- Trigger: Tự động tính tổng tiền sổ chi phí khi thêm/sửa/xóa đơn chi phí
-CREATE TRIGGER trigger_tinh_tong_so_chi_phi
-AFTER INSERT OR UPDATE OR DELETE ON don_chi_phi
-FOR EACH ROW
-EXECUTE FUNCTION tinh_tong_so_chi_phi();
+create table if not exists public.audit_events (
+  id bigserial primary key,
+  tenant_id integer not null references public.tenants(id) on delete restrict,
+  actor_user_id uuid references public.users(id) on delete set null,
+  action varchar(100) not null,
+  entity_type varchar(100) not null,
+  entity_id varchar(100),
+  request_id varchar(128),
+  correlation_id varchar(128),
+  before jsonb,
+  after jsonb,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
 
--- Function: Cập nhật trạng thái công nợ khi có thanh toán
-CREATE OR REPLACE FUNCTION cap_nhat_trang_thai_cong_no()
-RETURNS TRIGGER AS $$
-DECLARE
-    tong_da_tra NUMERIC(18,2);
-    tong_cong_no NUMERIC(18,2);
-BEGIN
-    IF NEW.cong_no_id IS NOT NULL THEN
-        -- Tính tổng đã trả
-        SELECT COALESCE(SUM(so_tien), 0) INTO tong_da_tra
-        FROM giao_dich_thanh_toan
-        WHERE cong_no_id = NEW.cong_no_id;
-        
-        -- Lấy tổng công nợ
-        SELECT so_tien INTO tong_cong_no
-        FROM cong_no
-        WHERE id = NEW.cong_no_id;
-        
-        -- Cập nhật trạng thái
-        UPDATE cong_no
-        SET trang_thai = CASE
-            WHEN tong_da_tra >= tong_cong_no THEN 'da_thanh_toan'
-            WHEN tong_da_tra > 0 THEN 'mot_phan'
-            ELSE 'chua_thanh_toan'
-        END
-        WHERE id = NEW.cong_no_id;
-    END IF;
-    
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+-- ---------------------------------------------------------------------------
+-- Integrity: totals are derived from detail rows, never client supplied.
+-- ---------------------------------------------------------------------------
 
--- Trigger: Cập nhật trạng thái công nợ khi có giao dịch thanh toán
-CREATE TRIGGER trigger_cap_nhat_cong_no
-AFTER INSERT OR UPDATE ON giao_dich_thanh_toan
-FOR EACH ROW
-EXECUTE FUNCTION cap_nhat_trang_thai_cong_no();
+create or replace function public.refresh_invoice_total()
+returns trigger language plpgsql set search_path = public as $$
+declare
+  invoice_tenant_id integer := coalesce(new.tenant_id, old.tenant_id);
+  sale_invoice_id integer := coalesce(new.hoa_don_ban_id, old.hoa_don_ban_id);
+  purchase_invoice_id integer := coalesce(new.hoa_don_mua_id, old.hoa_don_mua_id);
+begin
+  if tg_table_name = 'hoa_don_ban_chi_tiet' then
+    update public.hoa_don_ban invoice
+    set tong_tien = coalesce((
+      select sum(line.so_luong * line.don_gia * (1 + line.ty_le_thue / 100))
+      from public.hoa_don_ban_chi_tiet line
+      where line.tenant_id = invoice_tenant_id and line.hoa_don_ban_id = sale_invoice_id
+    ), 0)
+    where invoice.tenant_id = invoice_tenant_id and invoice.id = sale_invoice_id;
+  else
+    update public.hoa_don_mua invoice
+    set tong_tien = coalesce((
+      select sum(line.so_luong * line.don_gia * (1 + line.ty_le_thue / 100))
+      from public.hoa_don_mua_chi_tiet line
+      where line.tenant_id = invoice_tenant_id and line.hoa_don_mua_id = purchase_invoice_id
+    ), 0)
+    where invoice.tenant_id = invoice_tenant_id and invoice.id = purchase_invoice_id;
+  end if;
+  return coalesce(new, old);
+end;
+$$;
 
--- Function: Cập nhật updated_at timestamp
-CREATE OR REPLACE FUNCTION cap_nhat_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+drop trigger if exists trigger_refresh_sale_invoice_total on public.hoa_don_ban_chi_tiet;
+create trigger trigger_refresh_sale_invoice_total
+after insert or update or delete on public.hoa_don_ban_chi_tiet
+for each row execute procedure public.refresh_invoice_total();
 
--- Trigger: Tự động cập nhật updated_at cho các bảng có cột này
-CREATE TRIGGER trigger_users_updated_at
-BEFORE UPDATE ON users
-FOR EACH ROW
-EXECUTE FUNCTION cap_nhat_updated_at();
+drop trigger if exists trigger_refresh_purchase_invoice_total on public.hoa_don_mua_chi_tiet;
+create trigger trigger_refresh_purchase_invoice_total
+after insert or update or delete on public.hoa_don_mua_chi_tiet
+for each row execute procedure public.refresh_invoice_total();
 
-CREATE TRIGGER trigger_doi_tac_updated_at
-BEFORE UPDATE ON doi_tac
-FOR EACH ROW
-EXECUTE FUNCTION cap_nhat_updated_at();
+-- ---------------------------------------------------------------------------
+-- Indexes, RLS and grants
+-- ---------------------------------------------------------------------------
 
-CREATE TRIGGER trigger_don_doanh_thu_updated_at
-BEFORE UPDATE ON don_doanh_thu
-FOR EACH ROW
-EXECUTE FUNCTION cap_nhat_updated_at();
+create index if not exists idx_doi_tac_tenant_name on public.doi_tac (tenant_id, ten_doi_tac);
+create index if not exists idx_hoa_don_ban_tenant_date on public.hoa_don_ban (tenant_id, ngay_hoa_don desc);
+create index if not exists idx_hoa_don_mua_tenant_date on public.hoa_don_mua (tenant_id, ngay_hoa_don desc);
+create index if not exists idx_cong_no_tenant_status on public.cong_no (tenant_id, trang_thai);
+create index if not exists idx_giao_dich_tenant_date on public.giao_dich_thanh_toan (tenant_id, ngay_giao_dich desc);
+create index if not exists idx_bao_cao_thue_tenant_period on public.bao_cao_thue (tenant_id, ngay_bat_dau, ngay_ket_thuc);
+create index if not exists idx_audit_events_tenant_entity on public.audit_events (tenant_id, entity_type, entity_id, created_at desc);
 
-CREATE TRIGGER trigger_bao_cao_thue_updated_at
-BEFORE UPDATE ON bao_cao_thue
-FOR EACH ROW
-EXECUTE FUNCTION cap_nhat_updated_at();
+-- No browser request has access until it is authenticated and has a membership.
+revoke all on all tables in schema public from anon;
+revoke all on all sequences in schema public from anon;
+grant usage on schema public to authenticated;
+grant select, insert, update, delete on all tables in schema public to authenticated;
+grant usage, select on all sequences in schema public to authenticated;
+revoke all on function public.is_tenant_member(integer) from public;
+revoke all on function public.can_manage_tenant(integer) from public;
+grant execute on function public.is_tenant_member(integer), public.can_manage_tenant(integer) to authenticated;
 
--- ============================
--- VIEWS - Simplified queries
--- ============================
+alter table public.tenants enable row level security;
+alter table public.users enable row level security;
+alter table public.user_tenant_memberships enable row level security;
+alter table public.doanh_nghiep enable row level security;
+alter table public.doi_tac enable row level security;
+alter table public.hop_dong enable row level security;
+alter table public.hoa_don_ban enable row level security;
+alter table public.hoa_don_mua enable row level security;
+alter table public.hoa_don_ban_chi_tiet enable row level security;
+alter table public.hoa_don_mua_chi_tiet enable row level security;
+alter table public.so_doanh_thu enable row level security;
+alter table public.so_chi_phi enable row level security;
+alter table public.don_doanh_thu enable row level security;
+alter table public.don_chi_phi enable row level security;
+alter table public.cong_no enable row level security;
+alter table public.giao_dich_thanh_toan enable row level security;
+alter table public.bao_cao_thue enable row level security;
+alter table public.chi_tiet_thue enable row level security;
+alter table public.audit_events enable row level security;
 
--- View: Chi tiết hóa đơn bán với tính toán
-CREATE OR REPLACE VIEW v_hoa_don_ban_chi_tiet AS
-SELECT 
-    ct.*,
-    (ct.so_luong * ct.don_gia) AS thanh_tien,
-    (ct.so_luong * ct.don_gia * ct.ty_le_thue / 100) AS tien_thue,
-    (ct.so_luong * ct.don_gia * (1 + ct.ty_le_thue / 100)) AS tong_tien
-FROM hoa_don_ban_chi_tiet ct;
+create policy tenant_select on public.tenants for select to authenticated using (public.is_tenant_member(id));
+create policy profile_select_own on public.users for select to authenticated using (id = auth.uid());
+create policy profile_update_own on public.users for update to authenticated using (id = auth.uid()) with check (id = auth.uid());
+create policy membership_select_own on public.user_tenant_memberships for select to authenticated using (user_id = auth.uid());
 
--- View: Chi tiết hóa đơn mua với tính toán
-CREATE OR REPLACE VIEW v_hoa_don_mua_chi_tiet AS
-SELECT 
-    ct.*,
-    (ct.so_luong * ct.don_gia) AS thanh_tien,
-    (ct.so_luong * ct.don_gia * ct.ty_le_thue / 100) AS tien_thue,
-    (ct.so_luong * ct.don_gia * (1 + ct.ty_le_thue / 100)) AS tong_tien
-FROM hoa_don_mua_chi_tiet ct;
+-- Application tables share the same tenant gate. Changes to membership, roles,
+-- audit events and tenant settings are made by audited server-side use cases
+-- using SUPABASE_SERVICE_ROLE_KEY, never by a browser client.
+create policy doanh_nghiep_tenant_access on public.doanh_nghiep for all to authenticated using (public.is_tenant_member(tenant_id)) with check (public.is_tenant_member(tenant_id));
+create policy doi_tac_tenant_access on public.doi_tac for all to authenticated using (public.is_tenant_member(tenant_id)) with check (public.is_tenant_member(tenant_id));
+create policy hop_dong_tenant_access on public.hop_dong for all to authenticated using (public.is_tenant_member(tenant_id)) with check (public.is_tenant_member(tenant_id));
+create policy hoa_don_ban_tenant_access on public.hoa_don_ban for all to authenticated using (public.is_tenant_member(tenant_id)) with check (public.is_tenant_member(tenant_id));
+create policy hoa_don_mua_tenant_access on public.hoa_don_mua for all to authenticated using (public.is_tenant_member(tenant_id)) with check (public.is_tenant_member(tenant_id));
+create policy hoa_don_ban_chi_tiet_tenant_access on public.hoa_don_ban_chi_tiet for all to authenticated using (public.is_tenant_member(tenant_id)) with check (public.is_tenant_member(tenant_id));
+create policy hoa_don_mua_chi_tiet_tenant_access on public.hoa_don_mua_chi_tiet for all to authenticated using (public.is_tenant_member(tenant_id)) with check (public.is_tenant_member(tenant_id));
+create policy so_doanh_thu_tenant_access on public.so_doanh_thu for all to authenticated using (public.is_tenant_member(tenant_id)) with check (public.is_tenant_member(tenant_id));
+create policy so_chi_phi_tenant_access on public.so_chi_phi for all to authenticated using (public.is_tenant_member(tenant_id)) with check (public.is_tenant_member(tenant_id));
+create policy don_doanh_thu_tenant_access on public.don_doanh_thu for all to authenticated using (public.is_tenant_member(tenant_id)) with check (public.is_tenant_member(tenant_id));
+create policy don_chi_phi_tenant_access on public.don_chi_phi for all to authenticated using (public.is_tenant_member(tenant_id)) with check (public.is_tenant_member(tenant_id));
+create policy cong_no_tenant_access on public.cong_no for all to authenticated using (public.is_tenant_member(tenant_id)) with check (public.is_tenant_member(tenant_id));
+create policy giao_dich_tenant_access on public.giao_dich_thanh_toan for all to authenticated using (public.is_tenant_member(tenant_id)) with check (public.is_tenant_member(tenant_id));
+create policy bao_cao_thue_tenant_access on public.bao_cao_thue for all to authenticated using (public.is_tenant_member(tenant_id)) with check (public.is_tenant_member(tenant_id));
+create policy chi_tiet_thue_tenant_access on public.chi_tiet_thue for all to authenticated using (public.is_tenant_member(tenant_id)) with check (public.is_tenant_member(tenant_id));
+create policy audit_events_tenant_read on public.audit_events for select to authenticated using (public.can_manage_tenant(tenant_id));
 
--- View: Hóa đơn bán với thông tin đối tác
-CREATE OR REPLACE VIEW v_hoa_don_ban_full AS
-SELECT 
-    hd.*,
-    dt.ten_doi_tac,
-    dt.ma_doi_tac,
-    dt.ma_so_thue,
-    dt.dia_chi,
-    dt.dien_thoai,
-    dt.email
-FROM hoa_don_ban hd
-LEFT JOIN doi_tac dt ON hd.doi_tac_id = dt.id;
+-- Views inherit RLS from the caller on PostgreSQL 15+ / current Supabase.
+create or replace view public.v_hoa_don_ban_chi_tiet with (security_invoker = true) as
+select line.*, line.so_luong * line.don_gia as thanh_tien,
+       line.so_luong * line.don_gia * line.ty_le_thue / 100 as tien_thue,
+       line.so_luong * line.don_gia * (1 + line.ty_le_thue / 100) as tong_tien
+from public.hoa_don_ban_chi_tiet line;
 
--- View: Hóa đơn mua với thông tin đối tác
-CREATE OR REPLACE VIEW v_hoa_don_mua_full AS
-SELECT 
-    hd.*,
-    dt.ten_doi_tac,
-    dt.ma_doi_tac,
-    dt.ma_so_thue,
-    dt.dia_chi,
-    dt.dien_thoai,
-    dt.email
-FROM hoa_don_mua hd
-LEFT JOIN doi_tac dt ON hd.doi_tac_id = dt.id;
+create or replace view public.v_cong_no_full with (security_invoker = true) as
+select debt.*,
+       coalesce((select sum(payment.so_tien) from public.giao_dich_thanh_toan payment
+                 where payment.tenant_id = debt.tenant_id and payment.cong_no_id = debt.id), 0) as so_tien_da_tra,
+       debt.so_tien - coalesce((select sum(payment.so_tien) from public.giao_dich_thanh_toan payment
+                                where payment.tenant_id = debt.tenant_id and payment.cong_no_id = debt.id), 0) as so_tien_con_lai
+from public.cong_no debt;
 
--- View: Công nợ với số tiền còn lại
-CREATE OR REPLACE VIEW v_cong_no_full AS
-SELECT 
-    cn.*,
-    dt.ten_doi_tac,
-    dt.ma_doi_tac,
-    COALESCE((
-        SELECT SUM(so_tien)
-        FROM giao_dich_thanh_toan
-        WHERE cong_no_id = cn.id
-    ), 0) AS so_tien_da_tra,
-    (cn.so_tien - COALESCE((
-        SELECT SUM(so_tien)
-        FROM giao_dich_thanh_toan
-        WHERE cong_no_id = cn.id
-    ), 0)) AS so_tien_con_lai
-FROM cong_no cn
-LEFT JOIN doi_tac dt ON cn.doi_tac_id = dt.id;
+drop trigger if exists trigger_tenants_updated_at on public.tenants;
+create trigger trigger_tenants_updated_at before update on public.tenants for each row execute procedure public.set_updated_at();
+drop trigger if exists trigger_users_updated_at on public.users;
+create trigger trigger_users_updated_at before update on public.users for each row execute procedure public.set_updated_at();
 
--- View: Báo cáo thuế với số tiền còn lại
-CREATE OR REPLACE VIEW v_bao_cao_thue_full AS
-SELECT 
-    bct.*,
-    (bct.so_tien_thue - bct.so_tien_da_tra) AS so_tien_con_lai,
-    u.username AS nguoi_tao
-FROM bao_cao_thue bct
-LEFT JOIN users u ON bct.nguoi_tao_id = u.id;
-
--- ============================
--- COMMENTS - Documentation
--- ============================
-
-COMMENT ON TABLE users IS 'Bảng người dùng hệ thống';
-COMMENT ON TABLE doanh_nghiep IS 'Thông tin doanh nghiệp';
-COMMENT ON TABLE doi_tac IS 'Đối tác (khách hàng và nhà cung cấp)';
-COMMENT ON TABLE hop_dong IS 'Hợp đồng với đối tác';
-COMMENT ON TABLE hoa_don_ban IS 'Hóa đơn bán hàng - tong_tien được tính tự động từ chi tiết';
-COMMENT ON TABLE hoa_don_ban_chi_tiet IS 'Chi tiết từng dòng hàng hóa/dịch vụ trong hóa đơn bán';
-COMMENT ON TABLE hoa_don_mua IS 'Hóa đơn mua hàng - tong_tien được tính tự động từ chi tiết';
-COMMENT ON TABLE hoa_don_mua_chi_tiet IS 'Chi tiết từng dòng hàng hóa/dịch vụ trong hóa đơn mua';
-COMMENT ON TABLE so_doanh_thu IS 'Sổ doanh thu theo Thông tư 152/2025/TT-BTC';
-COMMENT ON TABLE so_chi_phi IS 'Sổ chi phí theo Thông tư 152/2025/TT-BTC';
-COMMENT ON TABLE don_doanh_thu IS 'Đơn ghi nhận doanh thu vào sổ kế toán';
-COMMENT ON TABLE don_chi_phi IS 'Đơn ghi nhận chi phí vào sổ kế toán';
-COMMENT ON TABLE cong_no IS 'Công nợ phải thu/phải trả';
-COMMENT ON TABLE giao_dich_thanh_toan IS 'Lịch sử giao dịch thanh toán (thu/chi)';
-COMMENT ON TABLE bao_cao_thue IS 'Báo cáo thuế (VAT, TNCN, TNDN)';
-COMMENT ON TABLE chi_tiet_thue IS 'Chi tiết từng khoản thuế trong báo cáo';
+commit;
