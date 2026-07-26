@@ -1,38 +1,33 @@
-import { desc } from 'drizzle-orm'
-import { users } from '../../db/schema'
+import { createSupabaseAdminClientFromEnv } from '../../utils/supabase'
 
 export default defineEventHandler(async (event) => {
-  try {
-    const db = useDrizzle()
-    const query = getQuery(event)
-    
-    const {
-      limit = 100,
-      offset = 0
-    } = query
+  const authUser = event.context.user as { userId?: string; email?: string } | undefined
 
-    const allUsers = await db
-      .select({
-        id: users.id,
-        email: users.email,
-        username: users.username,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt
-      })
-      .from(users)
-      .orderBy(desc(users.createdAt))
-      .limit(Number(limit))
-      .offset(Number(offset))
+  if (!authUser?.userId) {
+    throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
+  }
 
-    return {
-      success: true,
-      data: allUsers,
-      count: allUsers.length
-    }
-  } catch (error: any) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to fetch users: ' + error.message
-    })
+  const supabase = createSupabaseAdminClientFromEnv()
+  const { data: profile, error } = await supabase
+    .from('users')
+    .select('id, username, display_name, avatar_url, created_at, updated_at')
+    .eq('id', authUser.userId)
+    .maybeSingle()
+
+  if (error) {
+    throw createError({ statusCode: 503, statusMessage: 'Database unavailable' })
+  }
+
+  return {
+    success: true,
+    data: {
+      id: authUser.userId,
+      email: authUser.email ?? null,
+      username: profile?.username ?? null,
+      displayName: profile?.display_name ?? null,
+      avatarUrl: profile?.avatar_url ?? null,
+      createdAt: profile?.created_at ?? null,
+      updatedAt: profile?.updated_at ?? null,
+    },
   }
 })

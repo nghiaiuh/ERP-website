@@ -24,6 +24,22 @@ export function createSupabaseClientFromEnv(): SupabaseClient {
   return createClient(url, key)
 }
 
+export function createSupabaseAuthClientFromEnv(): SupabaseClient {
+  const { url, key } = getSupabaseEnv()
+
+  if (!url || !key) {
+    throw new Error('Missing SUPABASE_URL and SUPABASE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY in environment variables')
+  }
+
+  return createClient(url, key, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+      detectSessionInUrl: false,
+    },
+  })
+}
+
 export function createSupabaseAdminClientFromEnv(): SupabaseClient {
   const { url, serviceRoleKey } = getSupabaseEnv()
 

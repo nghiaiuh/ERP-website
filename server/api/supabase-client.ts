@@ -1,1 +1,1 @@
-export { createSupabaseClientFromEnv, getSupabaseEnv, testSupabaseConnection } from '../utils/supabase'
+export { createSupabaseAuthClientFromEnv, createSupabaseClientFromEnv, getSupabaseEnv, testSupabaseConnection } from '../utils/supabase'

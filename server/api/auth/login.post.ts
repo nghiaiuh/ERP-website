@@ -1,9 +1,7 @@
-import { eq, or } from 'drizzle-orm'
-import { useDrizzle, users } from '../../utils/drizzle'
-import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
-import { createSupabaseAdminClientFromEnv } from '../../utils/supabase'
+import { createSupabaseAuthClientFromEnv } from '../../utils/supabase'
+import { setCookie } from 'h3'
 
+/* Legacy local-password authentication, retained only in source history.
 type AuthUser = {
   id: number
   email: string
@@ -134,5 +132,46 @@ export default defineEventHandler(async (event) => {
       statusCode: 500,
       statusMessage: 'Internal server error during login'
     })
+  }
+})
+*/
+
+export default defineEventHandler(async (event) => {
+  const body = await readBody<{ identifier?: string; password?: string }>(event)
+  const email = body.identifier?.trim().toLowerCase()
+  const password = body.password
+
+  if (!email || !password) {
+    throw createError({ statusCode: 400, statusMessage: 'Email and password are required' })
+  }
+
+  if (!email.includes('@')) {
+    throw createError({ statusCode: 400, statusMessage: 'Sign in with the email registered in Supabase Auth' })
+  }
+
+  const supabase = createSupabaseAuthClientFromEnv()
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+
+  if (error || !data.session || !data.user) {
+    throw createError({ statusCode: 401, statusMessage: 'Invalid email or password' })
+  }
+
+  setCookie(event, 'sb_access_token', data.session.access_token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: data.session.expires_in,
+  })
+
+  return {
+    success: true,
+    message: 'Login successful',
+    user: {
+      id: data.user.id,
+      email: data.user.email,
+      username: data.user.user_metadata.username ?? null,
+      createdAt: data.user.created_at,
+    },
   }
 })

@@ -24,7 +24,7 @@ export default defineNuxtConfig({
     dbProvider: process.env.DB_PROVIDER || "drizzle",
     public: {
       supabaseUrl: process.env.SUPABASE_URL,
-      supabaseAnonKey: process.env.SUPABASE_KEY
+      supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_KEY
     }
   },
 

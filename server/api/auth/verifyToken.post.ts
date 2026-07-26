@@ -1,8 +1,6 @@
-import jwt from 'jsonwebtoken'
-import { eq } from 'drizzle-orm'
-import { useDrizzle, users } from '~~/server/utils/drizzle'
-import { createSupabaseAdminClientFromEnv } from '../../utils/supabase'
+import { createSupabaseAdminClientFromEnv, createSupabaseAuthClientFromEnv } from '../../utils/supabase'
 
+/* Legacy custom-JWT verification, retained only in source history.
 export default defineEventHandler(async (event) => {
     const body = await readBody(event)
 
@@ -90,4 +88,42 @@ export default defineEventHandler(async (event) => {
 
         throw createError({ statusCode: 500, message: 'Token verification failed' })
     }
+})
+*/
+
+export default defineEventHandler(async (event) => {
+  const { token } = await readBody<{ token?: string }>(event)
+
+  if (!token) {
+    throw createError({ statusCode: 400, statusMessage: 'No token was passed' })
+  }
+
+  const authClient = createSupabaseAuthClientFromEnv()
+  const { data: authData, error: authError } = await authClient.auth.getUser(token)
+
+  if (authError || !authData.user) {
+    throw createError({ statusCode: 401, statusMessage: 'Invalid or expired token' })
+  }
+
+  const adminClient = createSupabaseAdminClientFromEnv()
+  const { data: profile, error: profileError } = await adminClient
+    .from('users')
+    .select('id, username, display_name, created_at')
+    .eq('id', authData.user.id)
+    .maybeSingle()
+
+  if (profileError) {
+    throw createError({ statusCode: 503, statusMessage: 'Database unavailable' })
+  }
+
+  return {
+    success: true,
+    user: {
+      id: authData.user.id,
+      email: authData.user.email,
+      username: profile?.username ?? authData.user.user_metadata.username ?? null,
+      displayName: profile?.display_name ?? null,
+      createdAt: profile?.created_at ?? authData.user.created_at,
+    },
+  }
 })
