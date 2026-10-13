@@ -1,36 +1,22 @@
 name: Quality
 
 on:
-  pull_request:
   push:
-    branches:
-      - main
-      - master
+    branches: [main]
+  pull_request:
 
 jobs:
   quality:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-
-      - name: Install
-        run: npm ci
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Typecheck
-        run: npm run typecheck
-
-      - name: Test
-        run: npm run test
-
-      - name: Build
-        run: npm run build
+          cache: yarn
+      - run: corepack enable
+      - run: corepack yarn install --immutable
+      - run: corepack yarn lint
+      - run: corepack yarn typecheck
+      - run: corepack yarn test
+      - run: corepack yarn build
