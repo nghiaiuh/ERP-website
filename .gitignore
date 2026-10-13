@@ -1,69 +1,38 @@
-# Nuxt dev/build outputs
-.output
-.data
-.nuxt
-.nitro
-.cache
-dist
+# Dependencies
+node_modules/
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
 
-# Node dependencies
-node_modules
+# Build output
+dist/
+.next/
+out/
+coverage/
+*.tsbuildinfo
 
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# Misc
-.DS_Store
-.fleet
-.idea
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.example.json
-
-# Local env files
+# Environment and secrets
 .env
 .env.*
 !.env.example
+!.env.*.example
 
-# Local agent/tooling state and secrets
-.claude
-.codex/attachments/
-.codex/tmp/
-.agents/tmp/
+# Runtime files
+*.log
+logs/
+tmp/
+.cache/
 
-# Local database dumps, manual SQL snapshots and backups
-*.bak
-*.backup
-*.dump
-*.sql.bak
-*.snapshot.sql
-*.snapshot.*.sql
-*_snapshot.sql
-*_dump.sql
-local-*.sql
-supabase-*.sql
-drizzle/*.bak
-drizzle/*.sql.bak
-drizzle/meta.bak/
-
-# Keep official Drizzle migrations and metadata tracked.
-!drizzle/*.sql
-!drizzle/meta/
-!drizzle/meta/*.json
-
-# Test and coverage outputs
-coverage
-.coverage
-test-results
-playwright-report
-
-# OS/editor temp files
+# IDE and OS
+.claude/
+.idea/
+.vscode/
+.DS_Store
 Thumbs.db
-*.swp
-*.swo
-*~
+
+# Docker volumes when using local bind mounts
+.docker-data/
