@@ -13,6 +13,12 @@
   --ds-radius-sm: 6px;
   --ds-radius-md: 8px;
   --ds-radius-lg: 12px;
+
+  --ds-font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 }
 
 @theme inline {
@@ -27,4 +33,14 @@
   --radius-sm: var(--ds-radius-sm);
   --radius-md: var(--ds-radius-md);
   --radius-lg: var(--ds-radius-lg);
+
+  --font-sans: var(--ds-font-family);
+}
+
+@layer base {
+  body {
+    background: var(--ds-color-background);
+    color: var(--ds-color-text);
+    font-family: var(--ds-font-family);
+  }
 }
