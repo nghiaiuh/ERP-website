@@ -18,6 +18,8 @@
     "docker:config": "docker compose --env-file backend/.env -f backend/docker-compose.yml config",
     "docker:up": "docker compose --env-file backend/.env -f backend/docker-compose.yml up -d",
     "docker:down": "docker compose --env-file backend/.env -f backend/docker-compose.yml down",
+    "docker:stop": "docker compose --env-file backend/.env -f backend/docker-compose.yml stop",
+    "docker:start": "docker compose --env-file backend/.env -f backend/docker-compose.yml start",
     "docker:logs": "docker compose --env-file backend/.env -f backend/docker-compose.yml logs -f",
     "docker:ps": "docker compose --env-file backend/.env -f backend/docker-compose.yml ps",
     "infra:verify": "node --env-file=backend/.env backend/scripts/verify-infrastructure.mjs"
