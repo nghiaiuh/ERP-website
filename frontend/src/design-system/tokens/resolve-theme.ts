@@ -2,7 +2,7 @@ import { resolveLogoUrl } from "@/lib/utils/safe-redirect";
 import { defaultTheme } from "./default-theme";
 import { AppTheme, TenantThemeOverride } from "./theme.types";
 
-const HEX_COLOR_PATTERN = /^(?:"[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
+const HEX_COLOR_PATTERN = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
 const ALLOWED_FONT_FAMILIES = new Set([
     'Inter, sans-serif',

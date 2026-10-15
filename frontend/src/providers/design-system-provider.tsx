@@ -6,7 +6,6 @@ import { ConfigProvider } from "antd";
 import { useMemo, type ReactNode } from "react"
 
 import { createAntdTheme } from "@/design-system/adapters/antd-theme"
-import { createCssVariables } from "@/design-system/adapters/css-variables"
 import type { AppLocale, AppTheme } from "@/design-system/tokens/theme.types"
 
 interface DesignSystemProviderProps {
@@ -29,20 +28,14 @@ export function DesignSystemProvider({
         () => createAntdTheme(theme),
         [theme]
     );
-      const cssVariables = useMemo(
-        () => createCssVariables(theme),
-        [theme],
-    );
 
     return (
-        <div style={cssVariables}>
-            <ConfigProvider
-                locale={antdLocales[locale]}
-                theme={antdTheme}
-                button={{ autoInsertSpace: false }}
-            >
-                {children}
-            </ConfigProvider>
-        </div>
+        <ConfigProvider
+            locale={antdLocales[locale]}
+            theme={antdTheme}
+            button={{ autoInsertSpace: false }}
+        >
+            {children}
+        </ConfigProvider>
     )
 }
