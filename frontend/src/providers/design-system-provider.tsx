@@ -36,13 +36,13 @@ export function DesignSystemProvider({
 
     return (
         <div style={cssVariables}>
-        <ConfigProvider
-            locale={antdLocales[locale]}
-            theme={antdTheme}
-            button={{ autoInsertSpace: false }}
-        >
-            {children}
-        </ConfigProvider>
+            <ConfigProvider
+                locale={antdLocales[locale]}
+                theme={antdTheme}
+                button={{ autoInsertSpace: false }}
+            >
+                {children}
+            </ConfigProvider>
         </div>
     )
 }

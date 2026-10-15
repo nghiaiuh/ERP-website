@@ -1,3 +1,4 @@
+import { resolveLogoUrl } from "@/lib/utils/safe-redirect";
 import { defaultTheme } from "./default-theme";
 import { AppTheme, TenantThemeOverride } from "./theme.types";
 
@@ -9,17 +10,6 @@ const ALLOWED_FONT_FAMILIES = new Set([
     '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
 ]);
 
-function isAllowedLogoUrl(value: string): boolean {
-    if(value.startsWith('/')) {
-        return true;
-    }
-    try {
-        const url = new URL(value);
-        return url.protocol === 'https:';
-    } catch {
-        return false;
-    }
-}
 export function validateTenantThemeOverride(
     input: TenantThemeOverride,
 ): TenantThemeOverride {
@@ -28,8 +18,11 @@ export function validateTenantThemeOverride(
     if(brandName && brandName.length <= 80) {
         output.brandName = brandName;
     }
-    if (input.logoUrl && isAllowedLogoUrl(input.logoUrl)) {
-        output.logoUrl = input.logoUrl;
+    if (input.logoUrl) {
+        const safeLogoUrl = resolveLogoUrl(input.logoUrl);
+        if(safeLogoUrl) {
+            output.logoUrl = safeLogoUrl;
+        }
     }
 
     if(input.primaryColor &&
