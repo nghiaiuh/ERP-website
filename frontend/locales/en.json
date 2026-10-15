@@ -1,0 +1,45 @@
+{
+  "Landing": {
+    "title": "Enterprise management platform",
+    "description": "Manage enterprise data and operations on a unified platform.",
+    "openApp": "Open application"
+  },
+  "Workspace": {
+    "brandShort": "ERP",
+    "brand": "ERP Workspace",
+    "overview": "System overview",
+    "toggleNavigation": "Collapse or expand navigation",
+    "platformName": "ERP Platform",
+    "readyTitle": "The platform is ready for development",
+    "readyDescription": "The Next.js frontend connects to the NestJS API through a clearly typed client layer.",
+    "checkApi": "Check API again",
+    "backendLabel": "Backend",
+    "backendOnline": "Online · port 3000",
+    "backendOffline": "Offline",
+    "healthErrorMessage": "Unable to connect to backend",
+    "healthErrorDescription": "Run corepack yarn docker:up, then corepack yarn dev.",
+    "services": {
+      "mongodb": {
+        "name": "MongoDB",
+        "detail": "Business source of truth"
+      },
+      "redis": {
+        "name": "Redis",
+        "detail": "Cache and ephemeral state"
+      },
+      "rabbitmq": {
+        "name": "RabbitMQ",
+        "detail": "Asynchronous workflows"
+      },
+      "minio": {
+        "name": "MinIO",
+        "detail": "Document object storage"
+      }
+    }
+  },
+  "LocaleSwitcher": {
+    "label": "Language",
+    "vi": "Tiếng Việt",
+    "en": "English"
+  }
+}

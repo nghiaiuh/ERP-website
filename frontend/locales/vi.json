@@ -1,0 +1,45 @@
+{
+  "Landing": {
+    "title": "Nền tảng quản trị doanh nghiệp",
+    "description": "Quản lý dữ liệu và vận hành doanh nghiệp trên một nền tảng thống nhất.",
+    "openApp": "Mở ứng dụng"
+  },
+  "Workspace": {
+    "brandShort": "ERP",
+    "brand": "Không gian làm việc ERP",
+    "overview": "Tổng quan hệ thống",
+    "toggleNavigation": "Thu gọn hoặc mở rộng thanh điều hướng",
+    "platformName": "Nền tảng ERP",
+    "readyTitle": "Nền tảng đã sẵn sàng để phát triển",
+    "readyDescription": "Next.js frontend kết nối NestJS API qua một lớp client có kiểu dữ liệu rõ ràng.",
+    "checkApi": "Kiểm tra lại API",
+    "backendLabel": "Backend",
+    "backendOnline": "Online · cổng 3000",
+    "backendOffline": "Offline",
+    "healthErrorMessage": "Không kết nối được backend",
+    "healthErrorDescription": "Hãy chạy corepack yarn docker:up, sau đó corepack yarn dev.",
+    "services": {
+      "mongodb": {
+        "name": "MongoDB",
+        "detail": "Nguồn dữ liệu nghiệp vụ chính"
+      },
+      "redis": {
+        "name": "Redis",
+        "detail": "Bộ nhớ đệm và trạng thái tạm thời"
+      },
+      "rabbitmq": {
+        "name": "RabbitMQ",
+        "detail": "Xử lý quy trình bất đồng bộ"
+      },
+      "minio": {
+        "name": "MinIO",
+        "detail": "Lưu trữ đối tượng và tài liệu"
+      }
+    }
+  },
+  "LocaleSwitcher": {
+    "label": "Ngôn ngữ",
+    "vi": "Tiếng Việt",
+    "en": "English"
+  }
+}

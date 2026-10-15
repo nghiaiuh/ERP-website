@@ -9,20 +9,15 @@ import {
 } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { Alert, Button, Card, Col, Flex, Layout, Row, Space, Spin, Tag, Typography } from 'antd';
+import { useTranslations } from 'next-intl';
 import { fetchHealth } from '@/lib/api/health';
 import { useLayoutStore } from '@/stores/layout.store';
 
 const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
 
-const services = [
-  { name: 'MongoDB', detail: 'Business source of truth', icon: <DatabaseOutlined /> },
-  { name: 'Redis', detail: 'Cache and ephemeral state', icon: <CloudServerOutlined /> },
-  { name: 'RabbitMQ', detail: 'Asynchronous workflows', icon: <ApiOutlined /> },
-  { name: 'MinIO', detail: 'Document object storage', icon: <CloudServerOutlined /> },
-];
-
 export default function HomePage() {
+  const t = useTranslations('Workspace');
   const collapsed = useLayoutStore((state) => state.sidebarCollapsed);
   const toggleSidebar = useLayoutStore((state) => state.toggleSidebar);
   const health = useQuery({
@@ -30,51 +25,81 @@ export default function HomePage() {
     queryFn: fetchHealth,
     retry: false,
   });
+  const services = [
+    {
+      name: t('services.mongodb.name'),
+      detail: t('services.mongodb.detail'),
+      icon: <DatabaseOutlined />,
+    },
+    {
+      name: t('services.redis.name'),
+      detail: t('services.redis.detail'),
+      icon: <CloudServerOutlined />,
+    },
+    {
+      name: t('services.rabbitmq.name'),
+      detail: t('services.rabbitmq.detail'),
+      icon: <ApiOutlined />,
+    },
+    {
+      name: t('services.minio.name'),
+      detail: t('services.minio.detail'),
+      icon: <CloudServerOutlined />,
+    },
+  ];
 
   return (
     <Layout className="app-shell">
       <Sider width={240} collapsed={collapsed} className="sidebar">
-        <div className="brand">{collapsed ? 'ERP' : 'ERP Workspace'}</div>
+        <div className="brand">
+          {collapsed ? t('brandShort') : t('brand')}
+        </div>
         <div className="navigation-item">
           <DatabaseOutlined />
-          {!collapsed && <span>Tổng quan hệ thống</span>}
+          {!collapsed && <span>{t('overview')}</span>}
         </div>
       </Sider>
       <Layout>
         <Header className="topbar">
           <Button
             type="text"
-            aria-label="Thu gọn thanh điều hướng"
+            aria-label={t('toggleNavigation')}
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
             onClick={toggleSidebar}
           />
-          <Text strong>ERP Platform</Text>
+          <Text strong>{t('platformName')}</Text>
         </Header>
         <Content className="content">
           <Flex justify="space-between" align="center" gap={16} wrap>
             <div>
-              <Title level={2}>Nền tảng đã sẵn sàng để phát triển</Title>
+              <Title level={2}>{t('readyTitle')}</Title>
               <Text type="secondary">
-                Next.js frontend kết nối NestJS API qua một lớp client có kiểu dữ liệu rõ ràng.
+                {t('readyDescription')}
               </Text>
             </div>
-            <Button onClick={() => void health.refetch()}>Kiểm tra lại API</Button>
+            <Button onClick={() => void health.refetch()}>
+              {t('checkApi')}
+            </Button>
           </Flex>
 
           <Card className="status-card">
             <Space size="middle">
-              <Text strong>Backend</Text>
+              <Text strong>{t('backendLabel')}</Text>
               {health.isPending && <Spin size="small" />}
-              {health.isSuccess && <Tag color="success">Online · cổng 3000</Tag>}
-              {health.isError && <Tag color="error">Offline</Tag>}
+              {health.isSuccess && (
+                <Tag color="success">{t('backendOnline')}</Tag>
+              )}
+              {health.isError && (
+                <Tag color="error">{t('backendOffline')}</Tag>
+              )}
             </Space>
             {health.isError && (
               <Alert
                 className="health-alert"
                 type="warning"
                 showIcon
-                message="Không kết nối được backend"
-                description="Hãy chạy corepack yarn docker:up, sau đó corepack yarn dev."
+                title={t('healthErrorMessage')}
+                description={t('healthErrorDescription')}
               />
             )}
           </Card>
