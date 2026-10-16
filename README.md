@@ -110,3 +110,17 @@ corepack yarn typecheck
 corepack yarn test
 corepack yarn build
 ```
+
+## Frontend UI workshop
+
+Storybook hiển thị các UI primitives và ERP patterns độc lập với application routes. Nó sử dụng cùng Design System provider, Ant Design theme và CSS tokens như frontend.
+
+```bash
+corepack yarn workspace @erp/frontend storybook
+corepack yarn workspace @erp/frontend storybook:build
+corepack yarn workspace @erp/frontend test
+```
+
+- Storybook: http://localhost:6006
+- Component tests chạy bằng Vitest, React Testing Library và jsdom.
+- Stories nằm cạnh component dưới dạng `*.stories.tsx`; test component nằm trong `*.test.tsx`.

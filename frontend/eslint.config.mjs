@@ -218,5 +218,10 @@ export default defineConfig([
       ],
     },
   },
-  globalIgnores(['.next/**', 'out/**', 'next-env.d.ts']),
+  globalIgnores([
+    '.next/**',
+    'out/**',
+    'storybook-static/**',
+    'next-env.d.ts',
+  ]),
 ]);
