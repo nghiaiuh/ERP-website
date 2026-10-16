@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 
+import { PageHeader } from '@/components/patterns/page-header';
 import { HealthStatus } from '@/features/system-health';
 
 export default async function WorkspacePage() {
@@ -30,14 +31,10 @@ export default async function WorkspacePage() {
 
   return (
     <main className="space-y-6">
-      <header>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          {t('readyTitle')}
-        </h1>
-        <p className="mt-2 max-w-3xl text-muted">
-          {t('readyDescription')}
-        </p>
-      </header>
+      <PageHeader
+        title={t('readyTitle')}
+        description={t('readyDescription')}
+      />
 
       <HealthStatus />
 

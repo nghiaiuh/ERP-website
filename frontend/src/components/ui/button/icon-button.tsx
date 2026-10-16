@@ -1,35 +1,45 @@
 'use client';
 
-import { ReactNode } from "react";
+import {
+  forwardRef,
+  type ReactNode,
+} from 'react';
 
 import {
     Button,
     type ButtonProps,
-} from '@/components/ui/button';
+} from './button';
 
 export interface IconButtonProps
-    extends Omit<
-        ButtonProps,
-        'children' | 'icon' | 'shape' | 'aria-label'
-    > {
-        label: string;
-        icon: ReactNode;
-        showTooltip?: boolean
+  extends Omit<
+    ButtonProps,
+    'children' | 'icon' | 'shape' | 'aria-label'
+  > {
+  label: string;
+  icon: ReactNode;
+  showTooltip?: boolean;
 }
 
-export function IconButton({
+export const IconButton = forwardRef<
+  HTMLButtonElement | HTMLAnchorElement,
+  IconButtonProps
+>(function IconButton(
+  {
     label,
     icon,
     showTooltip = true,
     ...props
-}: IconButtonProps) {
+  },
+  ref,
+) {
     return (
-        <Button 
-            {...props}
-            shape="circle"
-            icon={icon}
-            aria-label={label}
-            title={showTooltip ? label : undefined}
-        />
+      <Button
+        {...props}
+        ref={ref}
+        shape="circle"
+        icon={icon}
+        aria-label={label}
+        title={showTooltip ? label : undefined}
+      />
     );
-}
+});

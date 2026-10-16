@@ -78,6 +78,7 @@ export function SelectField<
         id={selectId}
         options={options}
         status={error ? 'error' : undefined}
+        aria-required={required || undefined}
         aria-invalid={error ? true : undefined}
         aria-describedby={
           error

@@ -1,6 +1,8 @@
+'use client';
+
 import {
-    Button as AntButton,
-    type ButtonProps as AntButtonProps,
+  Button as AntButton,
+  type ButtonProps as AntButtonProps,
 } from 'antd';
 import { cva } from 'class-variance-authority';
 import { forwardRef } from 'react';
@@ -8,48 +10,48 @@ import { forwardRef } from 'react';
 import { cn } from '@/design-system/utils/cn';
 
 export type ButtonIntent =
-    | 'primary'
-    | 'secondary'
-    | 'ghost'
-    | 'danger';
+  | 'primary'
+  | 'secondary'
+  | 'ghost'
+  | 'danger';
 
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 export interface ButtonProps
-    extends Omit<
-        AntButtonProps,
-        | 'type'
-        | 'color'
-        | 'variant'
-        | 'danger'
-        | 'size'
-        | 'block'
-    > {
-        intent?: ButtonIntent;
-        size?: ButtonSize;
-        fullWidth?: boolean;
-    }
+  extends Omit<
+    AntButtonProps,
+    | 'type'
+    | 'color'
+    | 'variant'
+    | 'danger'
+    | 'size'
+    | 'block'
+  > {
+  intent?: ButtonIntent;
+  size?: ButtonSize;
+  fullWidth?: boolean;
+}
 
 const buttonClasses = cva(
-    'font-medium shadow-none',
-    {
-        variants: {
-            intent: {
-                primary: 'shadow-sm',
-                secondary: '',
-                ghost: '',
-                danger: 'shadow-sm',
-            },
-            fullWidth: {
-                true: 'w-full',
-                false: '',
-            },
-        },
-        defaultVariants: {
-            intent: 'primary',
-            fullWidth: false,
-        },
+  'font-medium shadow-none',
+  {
+    variants: {
+      intent: {
+        primary: 'shadow-sm',
+        secondary: '',
+        ghost: '',
+        danger: 'shadow-sm',
+      },
+      fullWidth: {
+        true: 'w-full',
+        false: '',
+      },
     },
+    defaultVariants: {
+      intent: 'primary',
+      fullWidth: false,
+    },
+  },
 );
 
 const intentMap = {
@@ -76,7 +78,6 @@ const sizeMap = {
     md: 'middle',
     lg: 'large',
 } as const;
-
 
 export const Button = forwardRef<
   HTMLButtonElement | HTMLAnchorElement,
