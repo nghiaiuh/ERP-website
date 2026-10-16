@@ -1,7 +1,8 @@
 'use client';
 
 import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
-import { Button, Layout } from 'antd';
+import { Layout } from 'antd';
+import { IconButton } from "@/components/ui/button";
 import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 
@@ -34,9 +35,9 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
             </Sider>
             <Layout>
                 <Header className="flex items-center gap-4 bg-surface px-4">
-                    <Button
-                        type="text"
-                        aria-label={t('toggleNavigation')}
+                    <IconButton
+                        intent="ghost"
+                        label={t('toggleNavigation')}
                         icon={
                             collapsed
                             ? <MenuUnfoldOutlined />
