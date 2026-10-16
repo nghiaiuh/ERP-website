@@ -1,3 +1,4 @@
+import { WorkspaceShell } from "@/features/workspace/components/workspace-shell";
 import { QueryProvider } from "@/providers/query-provider";
 
 interface AppLayoutProps {
@@ -9,7 +10,9 @@ export default function AppLayout({
 }: AppLayoutProps) {
     return (
         <QueryProvider>
-            {children}
+            <WorkspaceShell>
+                {children}
+            </WorkspaceShell>
         </QueryProvider>
     )
 }

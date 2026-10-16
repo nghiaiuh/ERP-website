@@ -1,122 +1,64 @@
-'use client';
+import { getTranslations } from 'next-intl/server';
 
-import {
-  ApiOutlined,
-  CloudServerOutlined,
-  DatabaseOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-} from '@ant-design/icons';
-import { useQuery } from '@tanstack/react-query';
-import { Alert, Button, Card, Col, Flex, Layout, Row, Space, Spin, Tag, Typography } from 'antd';
-import { useTranslations } from 'next-intl';
-import { fetchHealth } from '@/lib/api/health';
-import { useLayoutStore } from '@/stores/layout.store';
+import { HealthStatus } from '@/features/system-health/components/health-status';
 
-const { Header, Sider, Content } = Layout;
-const { Title, Text } = Typography;
+export default async function WorkspacePage() {
+  const t = await getTranslations('Workspace');
 
-export default function HomePage() {
-  const t = useTranslations('Workspace');
-  const collapsed = useLayoutStore((state) => state.sidebarCollapsed);
-  const toggleSidebar = useLayoutStore((state) => state.toggleSidebar);
-  const health = useQuery({
-    queryKey: ['backend-health'],
-    queryFn: fetchHealth,
-    retry: false,
-  });
   const services = [
     {
       name: t('services.mongodb.name'),
       detail: t('services.mongodb.detail'),
-      icon: <DatabaseOutlined />,
+      shortName: 'DB',
     },
     {
       name: t('services.redis.name'),
       detail: t('services.redis.detail'),
-      icon: <CloudServerOutlined />,
+      shortName: 'RD',
     },
     {
       name: t('services.rabbitmq.name'),
       detail: t('services.rabbitmq.detail'),
-      icon: <ApiOutlined />,
+      shortName: 'MQ',
     },
     {
       name: t('services.minio.name'),
       detail: t('services.minio.detail'),
-      icon: <CloudServerOutlined />,
+      shortName: 'S3',
     },
   ];
 
   return (
-    <Layout className="app-shell">
-      <Sider width={240} collapsed={collapsed} className="sidebar">
-        <div className="brand">
-          {collapsed ? t('brandShort') : t('brand')}
-        </div>
-        <div className="navigation-item">
-          <DatabaseOutlined />
-          {!collapsed && <span>{t('overview')}</span>}
-        </div>
-      </Sider>
-      <Layout>
-        <Header className="topbar">
-          <Button
-            type="text"
-            aria-label={t('toggleNavigation')}
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={toggleSidebar}
-          />
-          <Text strong>{t('platformName')}</Text>
-        </Header>
-        <Content className="content">
-          <Flex justify="space-between" align="center" gap={16} wrap>
-            <div>
-              <Title level={2}>{t('readyTitle')}</Title>
-              <Text type="secondary">
-                {t('readyDescription')}
-              </Text>
+    <main className="space-y-6">
+      <header>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
+          {t('readyTitle')}
+        </h1>
+        <p className="mt-2 max-w-3xl text-muted">
+          {t('readyDescription')}
+        </p>
+      </header>
+
+      <HealthStatus />
+
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {services.map((service) => (
+          <article
+            key={service.name}
+            className="rounded-lg border border-border bg-surface p-5 shadow-sm"
+          >
+            <div className="mb-4 flex size-10 items-center justify-center rounded-md bg-brand font-semibold text-white">
+              {service.shortName}
             </div>
-            <Button onClick={() => void health.refetch()}>
-              {t('checkApi')}
-            </Button>
-          </Flex>
-
-          <Card className="status-card">
-            <Space size="middle">
-              <Text strong>{t('backendLabel')}</Text>
-              {health.isPending && <Spin size="small" />}
-              {health.isSuccess && (
-                <Tag color="success">{t('backendOnline')}</Tag>
-              )}
-              {health.isError && (
-                <Tag color="error">{t('backendOffline')}</Tag>
-              )}
-            </Space>
-            {health.isError && (
-              <Alert
-                className="health-alert"
-                type="warning"
-                showIcon
-                title={t('healthErrorMessage')}
-                description={t('healthErrorDescription')}
-              />
-            )}
-          </Card>
-
-          <Row gutter={[16, 16]}>
-            {services.map((service) => (
-              <Col xs={24} sm={12} xl={6} key={service.name}>
-                <Card className="service-card">
-                  <div className="service-icon">{service.icon}</div>
-                  <Title level={4}>{service.name}</Title>
-                  <Text type="secondary">{service.detail}</Text>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        </Content>
-      </Layout>
-    </Layout>
+            <h2 className="text-lg font-semibold text-foreground">
+              {service.name}
+            </h2>
+            <p className="mt-2 text-sm text-muted">
+              {service.detail}
+            </p>
+          </article>
+        ))}
+      </section>
+    </main>
   );
 }
