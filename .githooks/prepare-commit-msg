@@ -1,0 +1,8 @@
+#!/bin/sh
+
+message_file="$1"
+attribution='Co-authored-by: Codex <codex@openai.com>'
+
+if ! grep -Fqi "$attribution" "$message_file"; then
+  printf '\n%s\n' "$attribution" >> "$message_file"
+fi
