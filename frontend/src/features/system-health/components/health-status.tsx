@@ -1,9 +1,10 @@
 'use client';
 
 import { useQuery } from "@tanstack/react-query";
-import { Alert, Button, Card, Flex, Space, Spin, Tag, Typography } from "antd";
+import { Alert, Card, Flex, Space, Spin, Tag, Typography } from "antd";
 import { useTranslations } from "next-intl";
 
+import { Button } from '@/components/ui/button';
 import { fetchHealth } from "@/lib/api/health";
 
 const { Text } = Typography;

@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 
-import { HealthStatus } from '@/features/system-health/components/health-status';
+import { HealthStatus } from '@/features/system-health';
 
 export default async function WorkspacePage() {
   const t = await getTranslations('Workspace');

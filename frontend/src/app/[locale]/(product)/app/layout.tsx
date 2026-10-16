@@ -1,4 +1,4 @@
-import { WorkspaceShell } from "@/features/workspace/components/workspace-shell";
+import { WorkspaceShell } from '@/features/workspace';
 import { QueryProvider } from "@/providers/query-provider";
 
 interface AppLayoutProps {
